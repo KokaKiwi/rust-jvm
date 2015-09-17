@@ -1,0 +1,17 @@
+[package]
+name = "jvm"
+version = "0.0.1"
+authors = ["KokaKiwi <kokakiwi@kokakiwi.net>"]
+
+[dependencies]
+bitflags    = "*"
+clap        = "*"
+env_logger  = "*"
+glob        = "*"
+log         = "*"
+podio       = "*"
+zip         = "*"
+
+[[bin]]
+name = "rjvm"
+doc = false

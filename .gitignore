@@ -1,0 +1,10 @@
+# Rust files
+target
+Cargo.lock
+
+# IDE / Editor files
+*.sublime-*
+
+# Misc files
+.*
+!.gitignore
