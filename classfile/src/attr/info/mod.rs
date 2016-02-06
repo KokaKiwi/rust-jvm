@@ -31,6 +31,7 @@ pub enum AttrInfo {
     Syncthetic(misc::SyntheticAttrInfo),
     Deprecated(misc::DeprecatedAttrInfo),
     RuntimeVisibleAnnotations(misc::RuntimeVisibleAnnotationsAttrInfo),
+    Signature(misc::SignatureAttrInfo),
 
     // Unknown
     Unknown(Vec<u8>),
@@ -88,6 +89,7 @@ impl_read! {
                 Syncthetic => misc::SyntheticAttrInfo::read,
                 Deprecated => misc::DeprecatedAttrInfo::read,
                 RuntimeVisibleAnnotations => misc::RuntimeVisibleAnnotationsAttrInfo::read,
+                Signature => misc::SignatureAttrInfo::read,
             );
         }
 
@@ -119,6 +121,7 @@ impl_print! {
             AttrInfo::Syncthetic(ref info) => try!(info.print(printer)),
             AttrInfo::Deprecated(ref info) => try!(info.print(printer)),
             AttrInfo::RuntimeVisibleAnnotations(ref info) => try!(info.print(printer, constant_pool)),
+            AttrInfo::Signature(ref info) => try!(info.print(printer, constant_pool)),
 
             // Unknown
             AttrInfo::Unknown(ref data) => {
