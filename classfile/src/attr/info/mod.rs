@@ -1,11 +1,10 @@
+#[macro_use] mod macros;
 pub mod classfile;
 pub mod code;
 pub mod field;
 pub mod method;
 pub mod misc;
 
-use byteorder::{ReadBytesExt, BigEndian};
-use std::io::Read;
 use error::Result;
 use constant::ConstantPool;
 
@@ -29,6 +28,9 @@ pub enum AttrInfo {
     Exceptions(method::ExceptionsAttrInfo),
 
     // Misc
+    Syncthetic(misc::SyntheticAttrInfo),
+    Deprecated(misc::DeprecatedAttrInfo),
+    RuntimeVisibleAnnotations(misc::RuntimeVisibleAnnotationsAttrInfo),
 
     // Unknown
     Unknown(Vec<u8>),
@@ -52,8 +54,8 @@ macro_rules! read_by_name {
     );
 }
 
-impl AttrInfo {
-    pub fn read<R: Read>(reader: &mut R, name: &str, pool: &ConstantPool) -> Result<AttrInfo> {
+impl_read! {
+    AttrInfo(reader, name: &str, pool: &ConstantPool) -> Result<AttrInfo> = {
         use utils::io::ReadExt;
 
         let size = try!(reader.read_u32::<BigEndian>()) as usize;
@@ -83,6 +85,9 @@ impl AttrInfo {
                 Exceptions => method::ExceptionsAttrInfo::read,
 
                 // Misc
+                Syncthetic => misc::SyntheticAttrInfo::read,
+                Deprecated => misc::DeprecatedAttrInfo::read,
+                RuntimeVisibleAnnotations => misc::RuntimeVisibleAnnotationsAttrInfo::read,
             );
         }
 
@@ -109,6 +114,11 @@ impl_print! {
             // Method
             AttrInfo::Code(ref info) => try!(info.print(printer, constant_pool)),
             AttrInfo::Exceptions(ref info) => try!(info.print(printer, constant_pool)),
+
+            // Misc
+            AttrInfo::Syncthetic(ref info) => try!(info.print(printer)),
+            AttrInfo::Deprecated(ref info) => try!(info.print(printer)),
+            AttrInfo::RuntimeVisibleAnnotations(ref info) => try!(info.print(printer, constant_pool)),
 
             // Unknown
             AttrInfo::Unknown(ref data) => {

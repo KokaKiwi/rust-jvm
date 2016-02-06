@@ -1,8 +1,6 @@
 pub mod info;
 
-use byteorder::{ReadBytesExt, BigEndian};
 use self::info::AttrInfo;
-use std::io::Read;
 use super::constant::ConstantPool;
 use super::error::{Result, Error};
 
@@ -13,7 +11,13 @@ pub struct Attr {
 }
 
 impl Attr {
-    pub fn read<R: Read>(reader: &mut R, pool: &ConstantPool) -> Result<Attr> {
+    pub fn name<'a>(&self, pool: &'a ConstantPool) -> Option<&'a str> {
+        pool.get_str(self.name_index)
+    }
+}
+
+impl_read! {
+    Attr(reader, pool: &ConstantPool) -> Result<Attr> = {
         // Read name index
         let name_index = try!(reader.read_u16::<BigEndian>()) as usize;
         let name = match pool.get_str(name_index) {
@@ -28,10 +32,6 @@ impl Attr {
             name_index: name_index,
             info: info,
         })
-    }
-
-    pub fn name<'a>(&self, pool: &'a ConstantPool) -> Option<&'a str> {
-        pool.get_str(self.name_index)
     }
 }
 

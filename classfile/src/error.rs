@@ -20,6 +20,10 @@ quick_error! {
             description("Bad magic value")
             display("Bad magic value: {:#x}", value)
         }
+        BadTagValue(value: u8) {
+            description("Bad tag value")
+            display("Bad tag value: {:#x} `{}`", value, *value as char)
+        }
         ByteOrderError(err: byteorder::Error) {
             cause(err)
             description(err.description())
