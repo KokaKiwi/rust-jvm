@@ -62,7 +62,7 @@ impl ConstantPool {
 
     pub fn get_str(&self, index: usize) -> Option<&str> {
         self.get(index).and_then(|entry| match entry {
-            &ConstantPoolEntry::Utf8(ref info) => Some(info.get_value()),
+            &ConstantPoolEntry::Utf8(ref info) => Some(info.value()),
             _ => None,
         })
     }
@@ -165,14 +165,14 @@ impl ConstantClassInfo {
         })
     }
 
-    pub fn get_name<'a>(&self, pool: &'a ConstantPool) -> Option<&'a str> {
+    pub fn name<'a>(&self, pool: &'a ConstantPool) -> Option<&'a str> {
         pool.get_str(self.name_index)
     }
 }
 
 impl_print! {
     ConstantClassInfo(self, printer, constant_pool: &ConstantPool) {
-        let name = self.get_name(constant_pool).expect("Invalid name index.");
+        let name = self.name(constant_pool).expect("Invalid name index.");
 
         try!(write!(printer, "Class `{}`", name));
     }
@@ -196,11 +196,11 @@ impl ConstantFieldRefInfo {
         })
     }
 
-    pub fn get_class<'a>(&self, pool: &'a ConstantPool) -> Option<&'a ConstantClassInfo> {
+    pub fn class<'a>(&self, pool: &'a ConstantPool) -> Option<&'a ConstantClassInfo> {
         pool.get_class_info(self.class_index)
     }
 
-    pub fn get_name_and_type<'a>(&self, pool: &'a ConstantPool) -> Option<&'a ConstantNameAndTypeInfo> {
+    pub fn name_and_type<'a>(&self, pool: &'a ConstantPool) -> Option<&'a ConstantNameAndTypeInfo> {
         pool.get(self.name_and_type_index).and_then(|entry| match *entry {
             ConstantPoolEntry::NameAndType(ref info) => Some(info),
             _ => None,
@@ -212,8 +212,8 @@ impl_print! {
     ConstantFieldRefInfo(self, printer, constant_pool: &ConstantPool) {
         try!(writeln!(printer, "FieldRef:"));
 
-        let class = self.get_class(constant_pool).expect("Invalid class index.");
-        let name_and_type = self.get_name_and_type(constant_pool).expect("Invalid Name And Type index.");
+        let class = self.class(constant_pool).expect("Invalid class index.");
+        let name_and_type = self.name_and_type(constant_pool).expect("Invalid Name And Type index.");
 
         {
             let mut printer = printer.sub_indent(1);
@@ -246,11 +246,11 @@ impl ConstantMethodRefInfo {
         })
     }
 
-    pub fn get_class<'a>(&self, pool: &'a ConstantPool) -> Option<&'a ConstantClassInfo> {
+    pub fn class<'a>(&self, pool: &'a ConstantPool) -> Option<&'a ConstantClassInfo> {
         pool.get_class_info(self.class_index)
     }
 
-    pub fn get_name_and_type<'a>(&self, pool: &'a ConstantPool) -> Option<&'a ConstantNameAndTypeInfo> {
+    pub fn name_and_type<'a>(&self, pool: &'a ConstantPool) -> Option<&'a ConstantNameAndTypeInfo> {
         pool.get(self.name_and_type_index).and_then(|entry| match *entry {
             ConstantPoolEntry::NameAndType(ref info) => Some(info),
             _ => None,
@@ -260,8 +260,8 @@ impl ConstantMethodRefInfo {
 
 impl_print! {
     ConstantMethodRefInfo(self, printer, constant_pool: &ConstantPool) {
-        let class = self.get_class(constant_pool).expect("Invalid class index");
-        let name_and_type = self.get_name_and_type(constant_pool).expect("Invalid name and type index.");
+        let class = self.class(constant_pool).expect("Invalid class index");
+        let name_and_type = self.name_and_type(constant_pool).expect("Invalid name and type index.");
 
         try!(writeln!(printer, "MethodRef:"));
 
@@ -296,11 +296,11 @@ impl ConstantInterfaceMethodRefInfo {
         })
     }
 
-    pub fn get_class<'a>(&self, pool: &'a ConstantPool) -> Option<&'a ConstantClassInfo> {
+    pub fn class<'a>(&self, pool: &'a ConstantPool) -> Option<&'a ConstantClassInfo> {
         pool.get_class_info(self.class_index)
     }
 
-    pub fn get_name_and_type<'a>(&self, pool: &'a ConstantPool) -> Option<&'a ConstantNameAndTypeInfo> {
+    pub fn name_and_type<'a>(&self, pool: &'a ConstantPool) -> Option<&'a ConstantNameAndTypeInfo> {
         pool.get(self.name_and_type_index).and_then(|entry| match *entry {
             ConstantPoolEntry::NameAndType(ref info) => Some(info),
             _ => None,
@@ -310,8 +310,8 @@ impl ConstantInterfaceMethodRefInfo {
 
 impl_print! {
     ConstantInterfaceMethodRefInfo(self, printer, constant_pool: &ConstantPool) {
-        let class = self.get_class(constant_pool).expect("Invalid class index");
-        let name_and_type = self.get_name_and_type(constant_pool).expect("Invalid name and type index.");
+        let class = self.class(constant_pool).expect("Invalid class index");
+        let name_and_type = self.name_and_type(constant_pool).expect("Invalid name and type index.");
 
         try!(writeln!(printer, "InterfaceMethodRef:"));
 
@@ -342,14 +342,14 @@ impl ConstantStringInfo {
         })
     }
 
-    pub fn get_value<'a>(&self, pool: &'a ConstantPool) -> Option<&'a str> {
+    pub fn value<'a>(&self, pool: &'a ConstantPool) -> Option<&'a str> {
         pool.get_str(self.string_index)
     }
 }
 
 impl_print! {
     ConstantStringInfo(self, printer, constant_pool: &ConstantPool) {
-        let value = self.get_value(constant_pool).expect("Invalid string index.");
+        let value = self.value(constant_pool).expect("Invalid string index.");
 
         try!(write!(printer, "String \"{}\"", value));
     }
@@ -369,7 +369,7 @@ impl ConstantIntegerInfo {
         })
     }
 
-    pub fn get_value(&self) -> i32 {
+    pub fn value(&self) -> i32 {
         self.value
     }
 }
@@ -394,7 +394,7 @@ impl ConstantFloatInfo {
         })
     }
 
-    pub fn get_value(&self) -> f32 {
+    pub fn value(&self) -> f32 {
         self.value
     }
 }
@@ -419,7 +419,7 @@ impl ConstantLongInfo {
         })
     }
 
-    pub fn get_value(&self) -> i64 {
+    pub fn value(&self) -> i64 {
         self.value
     }
 }
@@ -444,7 +444,7 @@ impl ConstantDoubleInfo {
         })
     }
 
-    pub fn get_value(&self) -> f64 {
+    pub fn value(&self) -> f64 {
         self.value
     }
 }
@@ -458,36 +458,36 @@ impl_print! {
 #[derive(Debug)]
 pub struct ConstantNameAndTypeInfo {
     name_index: usize,
-    descriptor_index: usize,
+    desc_index: usize,
 }
 
 impl ConstantNameAndTypeInfo {
     pub fn read<R: Read>(reader: &mut R) -> Result<ConstantNameAndTypeInfo> {
         // Read indexes
         let name_index = try!(reader.read_u16::<BigEndian>());
-        let descriptor_index = try!(reader.read_u16::<BigEndian>());
+        let desc_index = try!(reader.read_u16::<BigEndian>());
 
         Ok(ConstantNameAndTypeInfo {
             name_index: name_index as usize,
-            descriptor_index: descriptor_index as usize,
+            desc_index: desc_index as usize,
         })
     }
 
-    pub fn get_name<'a>(&self, pool: &'a ConstantPool) -> Option<&'a str> {
+    pub fn name<'a>(&self, pool: &'a ConstantPool) -> Option<&'a str> {
         pool.get_str(self.name_index)
     }
 
-    pub fn get_descriptor<'a>(&self, pool: &'a ConstantPool) -> Option<&'a str> {
-        pool.get_str(self.descriptor_index)
+    pub fn desc<'a>(&self, pool: &'a ConstantPool) -> Option<&'a str> {
+        pool.get_str(self.desc_index)
     }
 }
 
 impl_print! {
     ConstantNameAndTypeInfo(self, printer, constant_pool: &ConstantPool) {
-        let name = self.get_name(constant_pool).expect("Invalid name index.");
-        let descriptor = self.get_descriptor(constant_pool).expect("Invalid descriptor index.");
+        let name = self.name(constant_pool).expect("Invalid name index.");
+        let desc = self.desc(constant_pool).expect("Invalid descriptor index.");
 
-        try!(write!(printer, "NameAndType `{}` [{}]", name, descriptor));
+        try!(write!(printer, "NameAndType `{}` [{}]", name, desc));
     }
 }
 
@@ -509,14 +509,14 @@ impl ConstantUtf8Info {
         })
     }
 
-    pub fn get_value(&self) -> &str {
+    pub fn value(&self) -> &str {
         &self.value
     }
 }
 
 impl_print! {
     ConstantUtf8Info(self, printer, _constant_pool: &ConstantPool) {
-        try!(write!(printer, "Utf8 \"{}\"", self.value));
+        try!(write!(printer, "Utf8 {:?}", self.value));
     }
 }
 
@@ -537,18 +537,18 @@ impl ConstantMethodHandleInfo {
         })
     }
 
-    pub fn get_ref_kind(&self) -> u8 {
+    pub fn ref_kind(&self) -> u8 {
         self.ref_kind
     }
 
-    pub fn get_ref<'a>(&self, pool: &'a ConstantPool) -> Option<&'a ConstantPoolEntry> {
+    pub fn ref_entry<'a>(&self, pool: &'a ConstantPool) -> Option<&'a ConstantPoolEntry> {
         pool.get(self.ref_index)
     }
 }
 
 impl_print! {
     ConstantMethodHandleInfo(self, printer, constant_pool: &ConstantPool) {
-        let ref_entry = self.get_ref(constant_pool).expect("Invalid ref index.");
+        let ref_entry = self.ref_entry(constant_pool).expect("Invalid ref index.");
 
         try!(writeln!(printer, "MethodRef [{}]", self.ref_kind));
 
@@ -575,14 +575,14 @@ impl ConstantMethodTypeInfo {
         })
     }
 
-    pub fn get_desc<'a>(&self, pool: &'a ConstantPool) -> Option<&'a str> {
+    pub fn desc<'a>(&self, pool: &'a ConstantPool) -> Option<&'a str> {
         pool.get_str(self.desc_index)
     }
 }
 
 impl_print! {
     ConstantMethodTypeInfo(self, printer, constant_pool: &ConstantPool) {
-        let desc = self.get_desc(constant_pool).expect("Invalid desc index.");
+        let desc = self.desc(constant_pool).expect("Invalid desc index.");
 
         try!(write!(printer, "MethodType `{}`", desc));
     }
@@ -605,11 +605,11 @@ impl ConstantInvokedDynamicInfo {
         })
     }
 
-    pub fn get_bootstrap_method_attr<'a>(&self, pool: &'a ConstantPool) -> Option<&'a ConstantPoolEntry> {
+    pub fn bootstrap_method_attr<'a>(&self, pool: &'a ConstantPool) -> Option<&'a ConstantPoolEntry> {
         pool.get(self.bootstrap_method_attr_index)
     }
 
-    pub fn get_name_and_type<'a>(&self, pool: &'a ConstantPool) -> Option<&'a ConstantNameAndTypeInfo> {
+    pub fn name_and_type<'a>(&self, pool: &'a ConstantPool) -> Option<&'a ConstantNameAndTypeInfo> {
         pool.get(self.name_and_type_index).and_then(|entry| match *entry {
             ConstantPoolEntry::NameAndType(ref info) => Some(info),
             _ => None,
@@ -619,8 +619,8 @@ impl ConstantInvokedDynamicInfo {
 
 impl_print! {
     ConstantInvokedDynamicInfo(self, printer, constant_pool: &ConstantPool) {
-        let bootstrap_method_attr = self.get_bootstrap_method_attr(constant_pool).expect("Invalid index.");
-        let name_and_type = self.get_name_and_type(constant_pool).expect("Invalid index.");
+        let bootstrap_method_attr = self.bootstrap_method_attr(constant_pool).expect("Invalid index.");
+        let name_and_type = self.name_and_type(constant_pool).expect("Invalid index.");
 
         try!(writeln!(printer, "InvokedDynamic:"));
 
