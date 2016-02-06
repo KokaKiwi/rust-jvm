@@ -1,11 +1,7 @@
-#[macro_use]
-extern crate bitflags;
-extern crate glob;
-#[macro_use]
-extern crate log;
-extern crate podio;
-extern crate zip;
+extern crate jvm_classfile;
+#[macro_use] extern crate log;
+#[macro_use] extern crate quick_error;
 
-pub mod classfile;
+pub use jvm_classfile as classfile;
+
 pub mod classpath;
-pub mod utils;

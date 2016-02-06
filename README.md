@@ -1,7 +1,8 @@
 rust-jvm
 ========
 
-A basic experiment about implementing the JVM in Rust (http://www.rust-lang.org)
+A basic experiment about implementing the JVM in Rust (http://www.rust-lang.org), maybe inspired by
+[jvm.go](https://github.com/zxh0/jvm.go)
 
 Current status: `WIP`
 

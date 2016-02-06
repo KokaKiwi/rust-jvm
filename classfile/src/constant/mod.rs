@@ -1,23 +1,22 @@
 mod error;
 
-use podio::{ReadPodExt, BigEndian};
-use std::io::{Read, Write};
+use byteorder::{ReadBytesExt, BigEndian};
+use std::io::Read;
 pub use self::error::{Result, Error};
-use utils::print::{Print, Printer};
 
-#[allow(dead_code)]
+// #[allow(dead_code)]
 mod tag {
-    pub const CONSTANT_CLASS: u8              = 7;
-    pub const CONSTANT_FIELDREF: u8           = 9;
-    pub const CONSTANT_METHODREF: u8          = 10;
-    pub const CONSTANT_INTERFACEMETHODREF: u8 = 11;
-    pub const CONSTANT_STRING: u8             = 8;
+    pub const CONSTANT_UTF8: u8               = 1;
     pub const CONSTANT_INTEGER: u8            = 3;
     pub const CONSTANT_FLOAT: u8              = 4;
     pub const CONSTANT_LONG: u8               = 5;
     pub const CONSTANT_DOUBLE: u8             = 6;
+    pub const CONSTANT_CLASS: u8              = 7;
+    pub const CONSTANT_STRING: u8             = 8;
+    pub const CONSTANT_FIELDREF: u8           = 9;
+    pub const CONSTANT_METHODREF: u8          = 10;
+    pub const CONSTANT_INTERFACEMETHODREF: u8 = 11;
     pub const CONSTANT_NAMEANDTYPE: u8        = 12;
-    pub const CONSTANT_UTF8: u8               = 1;
     pub const CONSTANT_METHODHANDLE: u8       = 15;
     pub const CONSTANT_METHODTYPE: u8         = 16;
     pub const CONSTANT_INVOKEDYNAMIC: u8      = 18;
@@ -73,15 +72,13 @@ impl ConstantPool {
     }
 }
 
-impl Print for ConstantPool {
-    fn dump<W: Write>(&self, printer: &mut Printer<W>) -> ::std::io::Result<()> {
-        for (index, entry) in self.entries.iter().enumerate() {
-            try!(printer.indent());
-            try!(write!(printer, "{:3}: ", index));
-            try!(printer.sub_context(self).print(entry));
+impl_print! {
+    ConstantPool(self, printer) {
+        for entry in self.entries.iter() {
+            try!(printer.write_indent());
+            try!(entry.print(printer, self));
             try!(writeln!(printer, ""));
         }
-        Ok(())
     }
 }
 
@@ -122,28 +119,28 @@ impl ConstantPoolEntry {
             tag::CONSTANT_METHODHANDLE => ConstantMethodHandleInfo::read(reader).map(ConstantPoolEntry::MethodHandle),
             tag::CONSTANT_METHODTYPE => ConstantMethodTypeInfo::read(reader).map(ConstantPoolEntry::MethodType),
             tag::CONSTANT_INVOKEDYNAMIC => ConstantInvokedDynamicInfo::read(reader).map(ConstantPoolEntry::InvokedDynamic),
-            _ => Err(Error::BadTagValue(tag)),
+            _ => Err(From::from(Error::BadTagValue(tag))),
         }
     }
 }
 
-impl<'a> Print<&'a ConstantPool> for ConstantPoolEntry {
-    fn dump<W: Write>(&self, printer: &mut Printer<W, &'a ConstantPool>) -> ::std::io::Result<()> {
+impl_print! {
+    ConstantPoolEntry(self, printer, constant_pool: &ConstantPool) {
         match *self {
-            ConstantPoolEntry::Class(ref info) => info.dump(printer),
-            ConstantPoolEntry::FieldRef(ref info) => info.dump(printer),
-            ConstantPoolEntry::MethodRef(ref info) => info.dump(printer),
-            ConstantPoolEntry::InterfaceMethodRef(ref info) => info.dump(printer),
-            ConstantPoolEntry::String(ref info) => info.dump(printer),
-            ConstantPoolEntry::Integer(ref info) => info.dump(printer),
-            ConstantPoolEntry::Float(ref info) => info.dump(printer),
-            ConstantPoolEntry::Long(ref info) => info.dump(printer),
-            ConstantPoolEntry::Double(ref info) => info.dump(printer),
-            ConstantPoolEntry::NameAndType(ref info) => info.dump(printer),
-            ConstantPoolEntry::Utf8(ref info) => info.dump(printer),
-            ConstantPoolEntry::MethodHandle(ref info) => info.dump(printer),
-            ConstantPoolEntry::MethodType(ref info) => info.dump(printer),
-            ConstantPoolEntry::InvokedDynamic(ref info) => info.dump(printer),
+            ConstantPoolEntry::Class(ref info) => try!(info.print(printer, constant_pool)),
+            ConstantPoolEntry::FieldRef(ref info) => try!(info.print(printer, constant_pool)),
+            ConstantPoolEntry::MethodRef(ref info) => try!(info.print(printer, constant_pool)),
+            ConstantPoolEntry::InterfaceMethodRef(ref info) => try!(info.print(printer, constant_pool)),
+            ConstantPoolEntry::String(ref info) => try!(info.print(printer, constant_pool)),
+            ConstantPoolEntry::Integer(ref info) => try!(info.print(printer, constant_pool)),
+            ConstantPoolEntry::Float(ref info) => try!(info.print(printer, constant_pool)),
+            ConstantPoolEntry::Long(ref info) => try!(info.print(printer, constant_pool)),
+            ConstantPoolEntry::Double(ref info) => try!(info.print(printer, constant_pool)),
+            ConstantPoolEntry::NameAndType(ref info) => try!(info.print(printer, constant_pool)),
+            ConstantPoolEntry::Utf8(ref info) => try!(info.print(printer, constant_pool)),
+            ConstantPoolEntry::MethodHandle(ref info) => try!(info.print(printer, constant_pool)),
+            ConstantPoolEntry::MethodType(ref info) => try!(info.print(printer, constant_pool)),
+            ConstantPoolEntry::InvokedDynamic(ref info) => try!(info.print(printer, constant_pool)),
         }
     }
 }
@@ -168,10 +165,11 @@ impl ConstantClassInfo {
     }
 }
 
-impl<'a> Print<&'a ConstantPool> for ConstantClassInfo {
-    fn dump<W: Write>(&self, printer: &mut Printer<W, &'a ConstantPool>) -> ::std::io::Result<()> {
-        let name = self.get_name(printer.context).unwrap();
-        write!(printer, "Class `{}`", name)
+impl_print! {
+    ConstantClassInfo(self, printer, constant_pool: &ConstantPool) {
+        let name = self.get_name(constant_pool).expect("Invalid name index.");
+
+        try!(write!(printer, "Class `{}`", name));
     }
 }
 
@@ -205,14 +203,23 @@ impl ConstantFieldRefInfo {
     }
 }
 
-impl<'a> Print<&'a ConstantPool> for ConstantFieldRefInfo {
-    fn dump<W: Write>(&self, printer: &mut Printer<W, &'a ConstantPool>) -> ::std::io::Result<()> {
-        let class = self.get_class(printer.context).and_then(|class| class.get_name(printer.context)).unwrap();
-        let name_and_type = self.get_name_and_type(printer.context).unwrap();
-        let name = name_and_type.get_name(printer.context).unwrap();
-        let desc = name_and_type.get_descriptor(printer.context).unwrap();
+impl_print! {
+    ConstantFieldRefInfo(self, printer, constant_pool: &ConstantPool) {
+        try!(writeln!(printer, "FieldRef:"));
 
-        write!(printer, "FieldRef `{}/{}` `{}`", class, name, desc)
+        let class = self.get_class(constant_pool).expect("Invalid class index.");
+        let name_and_type = self.get_name_and_type(constant_pool).expect("Invalid Name And Type index.");
+
+        {
+            let mut printer = printer.sub_indent(1);
+
+            try!(printer.write_indent());
+            try!(class.print(&mut printer, constant_pool));
+            try!(writeln!(printer, ""));
+
+            try!(printer.write_indent());
+            try!(name_and_type.print(&mut printer, constant_pool));
+        }
     }
 }
 
@@ -246,14 +253,23 @@ impl ConstantMethodRefInfo {
     }
 }
 
-impl<'a> Print<&'a ConstantPool> for ConstantMethodRefInfo {
-    fn dump<W: Write>(&self, printer: &mut Printer<W, &'a ConstantPool>) -> ::std::io::Result<()> {
-        let class = self.get_class(printer.context).and_then(|class| class.get_name(printer.context)).unwrap();
-        let name_and_type = self.get_name_and_type(printer.context).unwrap();
-        let name = name_and_type.get_name(printer.context).unwrap();
-        let desc = name_and_type.get_descriptor(printer.context).unwrap();
+impl_print! {
+    ConstantMethodRefInfo(self, printer, constant_pool: &ConstantPool) {
+        let class = self.get_class(constant_pool).expect("Invalid class index");
+        let name_and_type = self.get_name_and_type(constant_pool).expect("Invalid name and type index.");
 
-        write!(printer, "MethodRef `{}/{}` `{}`", class, name, desc)
+        try!(writeln!(printer, "MethodRef:"));
+
+        {
+            let mut printer = printer.sub_indent(1);
+
+            try!(printer.write_indent());
+            try!(class.print(&mut printer, constant_pool));
+            try!(writeln!(printer, ""));
+
+            try!(printer.write_indent());
+            try!(name_and_type.print(&mut printer, constant_pool));
+        }
     }
 }
 
@@ -287,14 +303,23 @@ impl ConstantInterfaceMethodRefInfo {
     }
 }
 
-impl<'a> Print<&'a ConstantPool> for ConstantInterfaceMethodRefInfo {
-    fn dump<W: Write>(&self, printer: &mut Printer<W, &'a ConstantPool>) -> ::std::io::Result<()> {
-        let class = self.get_class(printer.context).and_then(|class| class.get_name(printer.context)).unwrap();
-        let name_and_type = self.get_name_and_type(printer.context).unwrap();
-        let name = name_and_type.get_name(printer.context).unwrap();
-        let desc = name_and_type.get_descriptor(printer.context).unwrap();
+impl_print! {
+    ConstantInterfaceMethodRefInfo(self, printer, constant_pool: &ConstantPool) {
+        let class = self.get_class(constant_pool).expect("Invalid class index");
+        let name_and_type = self.get_name_and_type(constant_pool).expect("Invalid name and type index.");
 
-        write!(printer, "InterfaceMethodRef `{}/{}` `{}`", class, name, desc)
+        try!(writeln!(printer, "InterfaceMethodRef:"));
+
+        {
+            let mut printer = printer.sub_indent(1);
+
+            try!(printer.write_indent());
+            try!(class.print(&mut printer, constant_pool));
+            try!(writeln!(printer, ""));
+
+            try!(printer.write_indent());
+            try!(name_and_type.print(&mut printer, constant_pool));
+        }
     }
 }
 
@@ -312,23 +337,16 @@ impl ConstantStringInfo {
         })
     }
 
-    pub fn get_string<'a>(&self, pool: &'a ConstantPool) -> Option<&'a ConstantUtf8Info> {
-        pool.get(self.string_index).and_then(|entry| match *entry {
-            ConstantPoolEntry::Utf8(ref info) => Some(info),
-            _ => None,
-        })
-    }
-
     pub fn get_value<'a>(&self, pool: &'a ConstantPool) -> Option<&'a str> {
-        self.get_string(pool).map(ConstantUtf8Info::get_value)
+        pool.get_str(self.string_index)
     }
 }
 
-impl<'a> Print<&'a ConstantPool> for ConstantStringInfo {
-    fn dump<W: Write>(&self, printer: &mut Printer<W, &'a ConstantPool>) -> ::std::io::Result<()> {
-        let value = self.get_value(printer.context).unwrap();
+impl_print! {
+    ConstantStringInfo(self, printer, constant_pool: &ConstantPool) {
+        let value = self.get_value(constant_pool).expect("Invalid string index.");
 
-        write!(printer, "String '{}'", value)
+        try!(write!(printer, "String \"{}\"", value));
     }
 }
 
@@ -351,9 +369,9 @@ impl ConstantIntegerInfo {
     }
 }
 
-impl<'a> Print<&'a ConstantPool> for ConstantIntegerInfo {
-    fn dump<W: Write>(&self, printer: &mut Printer<W, &'a ConstantPool>) -> ::std::io::Result<()> {
-        write!(printer, "Integer `{}`", self.get_value())
+impl_print! {
+    ConstantIntegerInfo(self, printer, _constant_pool: &ConstantPool) {
+        try!(write!(printer, "{}", self.value));
     }
 }
 
@@ -376,9 +394,9 @@ impl ConstantFloatInfo {
     }
 }
 
-impl<'a> Print<&'a ConstantPool> for ConstantFloatInfo {
-    fn dump<W: Write>(&self, printer: &mut Printer<W, &'a ConstantPool>) -> ::std::io::Result<()> {
-        write!(printer, "Float `{}`", self.get_value())
+impl_print! {
+    ConstantFloatInfo(self, printer, _constant_pool: &ConstantPool) {
+        try!(write!(printer, "Float {}", self.value));
     }
 }
 
@@ -401,9 +419,9 @@ impl ConstantLongInfo {
     }
 }
 
-impl<'a> Print<&'a ConstantPool> for ConstantLongInfo {
-    fn dump<W: Write>(&self, printer: &mut Printer<W, &'a ConstantPool>) -> ::std::io::Result<()> {
-        write!(printer, "Long `{}`", self.get_value())
+impl_print! {
+    ConstantLongInfo(self, printer, _constant_pool: &ConstantPool) {
+        try!(write!(printer, "Long {}", self.value));
     }
 }
 
@@ -426,9 +444,9 @@ impl ConstantDoubleInfo {
     }
 }
 
-impl<'a> Print<&'a ConstantPool> for ConstantDoubleInfo {
-    fn dump<W: Write>(&self, printer: &mut Printer<W, &'a ConstantPool>) -> ::std::io::Result<()> {
-        write!(printer, "Double `{}`", self.get_value())
+impl_print! {
+    ConstantDoubleInfo(self, printer, _constant_pool: &ConstantPool) {
+        try!(write!(printer, "Double {}", self.value));
     }
 }
 
@@ -459,12 +477,12 @@ impl ConstantNameAndTypeInfo {
     }
 }
 
-impl<'a> Print<&'a ConstantPool> for ConstantNameAndTypeInfo {
-    fn dump<W: Write>(&self, printer: &mut Printer<W, &'a ConstantPool>) -> ::std::io::Result<()> {
-        let name = self.get_name(printer.context).unwrap();
-        let desc = self.get_descriptor(printer.context).unwrap();
+impl_print! {
+    ConstantNameAndTypeInfo(self, printer, constant_pool: &ConstantPool) {
+        let name = self.get_name(constant_pool).expect("Invalid name index.");
+        let descriptor = self.get_descriptor(constant_pool).expect("Invalid descriptor index.");
 
-        write!(printer, "NameAndType `{}`: `{}`", name, desc)
+        try!(write!(printer, "NameAndType `{}` [{}]", name, descriptor));
     }
 }
 
@@ -479,7 +497,7 @@ impl ConstantUtf8Info {
 
         let length = try!(reader.read_u16::<BigEndian>()) as usize;
         let data = try!(reader.read_vec(length));
-        let value = try!(String::from_utf8(data));
+        let value = try!(String::from_utf8(data).map_err(Error::Utf8Error));
 
         Ok(ConstantUtf8Info {
             value: value,
@@ -491,9 +509,9 @@ impl ConstantUtf8Info {
     }
 }
 
-impl<'a> Print<&'a ConstantPool> for ConstantUtf8Info {
-    fn dump<W: Write>(&self, printer: &mut Printer<W, &'a ConstantPool>) -> ::std::io::Result<()> {
-        write!(printer, "Utf8 `{}`", self.get_value())
+impl_print! {
+    ConstantUtf8Info(self, printer, _constant_pool: &ConstantPool) {
+        try!(write!(printer, "Utf8 \"{}\"", self.value));
     }
 }
 
@@ -523,9 +541,18 @@ impl ConstantMethodHandleInfo {
     }
 }
 
-impl<'a> Print<&'a ConstantPool> for ConstantMethodHandleInfo {
-    fn dump<W: Write>(&self, printer: &mut Printer<W, &'a ConstantPool>) -> ::std::io::Result<()> {
-        write!(printer, "MethodHandle")
+impl_print! {
+    ConstantMethodHandleInfo(self, printer, constant_pool: &ConstantPool) {
+        let ref_entry = self.get_ref(constant_pool).expect("Invalid ref index.");
+
+        try!(writeln!(printer, "MethodRef [{}]", self.ref_kind));
+
+        {
+            let mut printer = printer.sub_indent(1);
+
+            try!(printer.write_indent());
+            try!(ref_entry.print(&mut printer.by_ref(), constant_pool));
+        }
     }
 }
 
@@ -548,11 +575,11 @@ impl ConstantMethodTypeInfo {
     }
 }
 
-impl<'a> Print<&'a ConstantPool> for ConstantMethodTypeInfo {
-    fn dump<W: Write>(&self, printer: &mut Printer<W, &'a ConstantPool>) -> ::std::io::Result<()> {
-        let desc = self.get_desc(printer.context).unwrap();
+impl_print! {
+    ConstantMethodTypeInfo(self, printer, constant_pool: &ConstantPool) {
+        let desc = self.get_desc(constant_pool).expect("Invalid desc index.");
 
-        write!(printer, "MethodType `{}`", desc)
+        try!(write!(printer, "MethodType `{}`", desc));
     }
 }
 
@@ -585,12 +612,22 @@ impl ConstantInvokedDynamicInfo {
     }
 }
 
-impl<'a> Print<&'a ConstantPool> for ConstantInvokedDynamicInfo {
-    fn dump<W: Write>(&self, printer: &mut Printer<W, &'a ConstantPool>) -> ::std::io::Result<()> {
-        let name_and_type = self.get_name_and_type(printer.context).unwrap();
-        let name = name_and_type.get_name(printer.context).unwrap();
-        let desc = name_and_type.get_descriptor(printer.context).unwrap();
+impl_print! {
+    ConstantInvokedDynamicInfo(self, printer, constant_pool: &ConstantPool) {
+        let bootstrap_method_attr = self.get_bootstrap_method_attr(constant_pool).expect("Invalid index.");
+        let name_and_type = self.get_name_and_type(constant_pool).expect("Invalid index.");
 
-        write!(printer, "InvokedDynamic `{}` `{}`", name, desc)
+        try!(writeln!(printer, "InvokedDynamic:"));
+
+        {
+            let mut printer = printer.sub_indent(1);
+
+            try!(printer.write_indent());
+            try!(bootstrap_method_attr.print(&mut printer.by_ref(), constant_pool));
+            try!(writeln!(printer, ""));
+
+            try!(printer.write_indent());
+            try!(name_and_type.print(&mut printer, constant_pool));
+        }
     }
 }

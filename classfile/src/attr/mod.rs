@@ -1,0 +1,47 @@
+pub mod info;
+
+use byteorder::{ReadBytesExt, BigEndian};
+use self::info::AttrInfo;
+use std::io::Read;
+use super::constant::ConstantPool;
+use super::error::{Result, Error};
+
+#[derive(Debug)]
+pub struct Attr {
+    name_index: usize,
+    pub info: AttrInfo,
+}
+
+impl Attr {
+    pub fn read<R: Read>(reader: &mut R, pool: &ConstantPool) -> Result<Attr> {
+        // Read name index
+        let name_index = try!(reader.read_u16::<BigEndian>()) as usize;
+        let name = match pool.get_str(name_index) {
+            Some(name) => name,
+            None => return Err(Error::BadAttrName(name_index)),
+        };
+
+        // Read attr info
+        let info = try!(AttrInfo::read(reader, name, pool));
+
+        Ok(Attr {
+            name_index: name_index,
+            info: info,
+        })
+    }
+
+    pub fn name<'a>(&self, pool: &'a ConstantPool) -> Option<&'a str> {
+        pool.get_str(self.name_index)
+    }
+}
+
+impl_print! {
+    Attr(self, printer, constant_pool: &ConstantPool) {
+        let name = self.name(constant_pool).expect("Invalid name index");
+
+        try!(printer.write_indent());
+        try!(writeln!(printer, "Attr `{}`:", name));
+
+        try!(self.info.print(&mut printer.sub_indent(1), constant_pool));
+    }
+}

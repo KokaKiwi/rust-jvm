@@ -2,6 +2,9 @@
 target
 Cargo.lock
 
+# Java files
+*.class
+
 # IDE / Editor files
 *.sublime-*
 

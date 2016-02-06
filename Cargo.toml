@@ -1,16 +1,14 @@
 [package]
 name = "jvm"
-version = "0.0.1"
+version = "0.1.0"
 authors = ["KokaKiwi <kokakiwi@kokakiwi.net>"]
 
 [dependencies]
-bitflags    = "*"
-clap        = "*"
-env_logger  = "*"
-glob        = "*"
-log         = "*"
-podio       = "*"
-zip         = "*"
+clap = { git = "https://github.com/kbknapp/clap-rs", features = ["unstable"] }
+env_logger = "*"
+jvm-classfile = { path = "classfile" }
+log = "*"
+quick-error = "*"
 
 [[bin]]
 name = "rjvm"

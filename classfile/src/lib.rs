@@ -1,3 +1,9 @@
+#[macro_use] extern crate bitflags;
+extern crate byteorder;
+#[macro_use] extern crate log;
+#[macro_use] extern crate quick_error;
+
+#[macro_use] mod utils;
 pub mod attr;
 pub mod constant;
 pub mod error;
@@ -5,16 +11,15 @@ pub mod field;
 pub mod method;
 pub mod version;
 
-use podio::{ReadPodExt, BigEndian};
+use byteorder::{ReadBytesExt, BigEndian};
 use self::attr::Attr;
 use self::constant::ConstantPool;
 pub use self::error::{Result, Error};
 use self::field::FieldInfo;
 use self::method::MethodInfo;
 use self::version::Version;
-use std::fmt;
-use std::io::{Read, Write};
-use utils::print::{Print, Printer};
+use std::io;
+use utils::print::Printer;
 
 const MAGIC_VALUE: u32 = 0xCAFEBABE;
 
@@ -22,17 +27,17 @@ const MAGIC_VALUE: u32 = 0xCAFEBABE;
 pub struct ClassFile {
     pub version: Version,
     pub constant_pool: ConstantPool,
-    pub access_flags: AccessFlags,
+    pub access_flags: flags::AccessFlags,
     this_class: usize,
     super_class: usize,
-    pub interfaces: Vec<usize>,
+    interfaces: Vec<usize>,
     pub fields: Vec<FieldInfo>,
     pub methods: Vec<MethodInfo>,
     pub attrs: Vec<Attr>,
 }
 
 impl ClassFile {
-    pub fn read<R: Read>(reader: &mut R) -> Result<ClassFile> {
+    pub fn read<R: io::Read>(reader: &mut R) -> Result<ClassFile> {
         // Read magic value
         let magic = try!(reader.read_u32::<BigEndian>());
         if magic != MAGIC_VALUE {
@@ -48,7 +53,7 @@ impl ClassFile {
 
         // Read access flags
         let access_flags = try!(reader.read_u16::<BigEndian>());
-        let access_flags = match AccessFlags::from_bits(access_flags) {
+        let access_flags = match flags::AccessFlags::from_bits(access_flags) {
             Some(flags) => flags,
             None => return Err(Error::BadAccessFlags(access_flags)),
         };
@@ -102,99 +107,117 @@ impl ClassFile {
         })
     }
 
-    pub fn get_this_class(&self) -> Option<&constant::ConstantClassInfo> {
+    pub fn this_class(&self) -> Option<&constant::ConstantClassInfo> {
         self.constant_pool.get_class_info(self.this_class)
     }
 
-    pub fn get_super_class(&self) -> Option<&constant::ConstantClassInfo> {
+    pub fn super_class(&self) -> Option<&constant::ConstantClassInfo> {
         self.constant_pool.get_class_info(self.super_class)
     }
+
+    pub fn interfaces<'a>(&'a self) -> Interfaces<'a> {
+        Interfaces::new(self)
+    }
+
+    pub fn dump(&self) {
+        let mut printer = Printer::default();
+        self.print(&mut printer).unwrap();
+    }
 }
 
-impl Print for ClassFile {
-    fn dump<W: Write>(&self, printer: &mut Printer<W>) -> ::std::io::Result<()> {
-        try!(printer.indent());
+impl_print! {
+    ClassFile(self, printer) {
+        try!(printer.write_indent());
         try!(writeln!(printer, "Version: {}", self.version));
 
-        try!(printer.indent());
-        try!(writeln!(printer, "Constants:"));
-        try!(printer.sub().with_indent(4).print(&self.constant_pool));
+        try!(printer.write_indent());
+        try!(writeln!(printer, "Access flags: {:?}", self.access_flags));
 
-        try!(printer.indent());
-        try!(writeln!(printer, "Access flags: {}", self.access_flags));
-
-        try!(printer.indent());
+        let this_class = self.this_class().expect("Invalid class index");
+        try!(printer.write_indent());
         try!(write!(printer, "This class: "));
-        try!(printer.sub_context(&self.constant_pool).with_indent(4).print(self.get_this_class().unwrap()));
+        try!(this_class.print(printer, &self.constant_pool));
         try!(writeln!(printer, ""));
 
-        try!(printer.indent());
+        let super_class = self.super_class().expect("Invalid class index");
+        try!(printer.write_indent());
         try!(write!(printer, "Super class: "));
-        try!(printer.sub_context(&self.constant_pool).with_indent(4).print(self.get_super_class().unwrap()));
+        try!(super_class.print(printer, &self.constant_pool));
         try!(writeln!(printer, ""));
 
-        try!(printer.indent());
+        try!(printer.write_indent());
+        try!(writeln!(printer, "Constants:"));
+        try!(self.constant_pool.print(&mut printer.sub_indent(1)));
+
+        try!(printer.write_indent());
         try!(writeln!(printer, "Interfaces:"));
-        for info in self.interfaces.iter().map(|&index| self.constant_pool.get_class_info(index).unwrap()) {
-            try!(printer.sub().with_indent(4).indent());
-            try!(printer.sub_context(&self.constant_pool).print(info));
-            try!(writeln!(printer, ""));
+        for iface in self.interfaces() {
+            if let Some(iface) = iface {
+                try!(iface.print(&mut printer.sub_indent(1), &self.constant_pool));
+            }
         }
 
-        try!(printer.indent());
+        try!(printer.write_indent());
         try!(writeln!(printer, "Fields:"));
         for field in self.fields.iter() {
-            try!(printer.sub_context(&self.constant_pool).with_indent(4).print(field));
+            try!(field.print(&mut printer.sub_indent(1), &self.constant_pool));
         }
 
-        try!(printer.indent());
+        try!(printer.write_indent());
         try!(writeln!(printer, "Methods:"));
         for method in self.methods.iter() {
-            try!(printer.sub_context(&self.constant_pool).with_indent(4).print(method));
+            try!(method.print(&mut printer.sub_indent(1), &self.constant_pool));
         }
 
-        try!(printer.indent());
-        try!(writeln!(printer, "Attributes:"));
+        try!(printer.write_indent());
+        try!(writeln!(printer, "Attrs:"));
         for attr in self.attrs.iter() {
-            try!(printer.sub_context(&self.constant_pool).with_indent(4).print(attr));
+            try!(attr.print(&mut printer.sub_indent(1), &self.constant_pool));
         }
-
-        Ok(())
     }
 }
 
-bitflags! {
-    flags AccessFlags: u16 {
-        #[doc = "Declared public; may be accessed from outside its package."]
-        const ACC_PUBLIC      = 0x0001,
-        #[doc = "Declared final; no subclasses allowed."]
-        const ACC_FINAL       = 0x0010,
-        #[doc = "Treat superclass methods specially when invoked by the invokespecial instruction."]
-        const ACC_SUPER       = 0x0020,
-        #[doc = "Is an interface, not a class."]
-        const ACC_INTERFACE   = 0x0200,
-        #[doc = "Declared abstract; must not be instantiated."]
-        const ACC_ABSTRACT    = 0x0400,
-        #[doc = "Declared synthetic; not present in the source code."]
-        const ACC_SYNTHETIC   = 0x1000,
-        #[doc = "Declared as an annotation type."]
-        const ACC_ANNOTATION  = 0x2000,
-        #[doc = "Declared as an enum type."]
-        const ACC_ENUM        = 0x4000,
+pub struct Interfaces<'a> {
+    iter: ::std::slice::Iter<'a, usize>,
+    constant_pool: &'a ConstantPool,
+}
+
+impl<'a> Interfaces<'a> {
+    fn new(cf: &'a ClassFile) -> Interfaces<'a> {
+        Interfaces {
+            iter: cf.interfaces.iter(),
+            constant_pool: &cf.constant_pool,
+        }
     }
 }
 
-impl fmt::Display for AccessFlags {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let mut flags = Vec::new();
-        if self.contains(ACC_PUBLIC) { flags.push("ACC_PUBLIC"); }
-        if self.contains(ACC_FINAL) { flags.push("ACC_FINAL"); }
-        if self.contains(ACC_SUPER) { flags.push("ACC_SUPER"); }
-        if self.contains(ACC_INTERFACE) { flags.push("ACC_INTERFACE"); }
-        if self.contains(ACC_ABSTRACT) { flags.push("ACC_ABSTRACT"); }
-        if self.contains(ACC_SYNTHETIC) { flags.push("ACC_SYNTHETIC"); }
-        if self.contains(ACC_ANNOTATION) { flags.push("ACC_ANNOTATION"); }
-        if self.contains(ACC_ENUM) { flags.push("ACC_ENUM"); }
-        write!(f, "{}", flags.join(", "))
+impl<'a> Iterator for Interfaces<'a> {
+    type Item = Option<&'a constant::ConstantClassInfo>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next().map(|&index| self.constant_pool.get_class_info(index))
+    }
+}
+
+pub mod flags {
+    bitflags! {
+        flags AccessFlags: u16 {
+            #[doc = "Declared public; may be accessed from outside its package."]
+            const ACC_PUBLIC      = 0x0001,
+            #[doc = "Declared final; no subclasses allowed."]
+            const ACC_FINAL       = 0x0010,
+            #[doc = "Treat superclass methods specially when invoked by the invokespecial instruction."]
+            const ACC_SUPER       = 0x0020,
+            #[doc = "Is an interface, not a class."]
+            const ACC_INTERFACE   = 0x0200,
+            #[doc = "Declared abstract; must not be instantiated."]
+            const ACC_ABSTRACT    = 0x0400,
+            #[doc = "Declared synthetic; not present in the source code."]
+            const ACC_SYNTHETIC   = 0x1000,
+            #[doc = "Declared as an annotation type."]
+            const ACC_ANNOTATION  = 0x2000,
+            #[doc = "Declared as an enum type."]
+            const ACC_ENUM        = 0x4000,
+        }
     }
 }

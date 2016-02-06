@@ -1,0 +1,11 @@
+[package]
+name = "jvm-classfile"
+version = "0.1.0"
+authors = ["KokaKiwi <kokakiwi@kokakiwi.net>"]
+description = "Java class files reader"
+
+[dependencies]
+bitflags = "*"
+byteorder = "*"
+log = "*"
+quick-error = "*"
