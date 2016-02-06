@@ -24,7 +24,7 @@ mod tag {
 
 #[derive(Debug)]
 pub struct ConstantPool {
-    entries: Vec<ConstantPoolEntry>,
+    entries: Vec<Option<ConstantPoolEntry>>,
 }
 
 impl ConstantPool {
@@ -36,15 +36,18 @@ impl ConstantPool {
         while index < entries_count {
             let constant_pool_entry = try!(ConstantPoolEntry::read(reader));
 
-            match constant_pool_entry {
-                ConstantPoolEntry::Long(_) | ConstantPoolEntry::Double(_) => {
-                    index += 1;
-                }
-                _ => {}
-            }
+            let long_entry = match constant_pool_entry {
+                ConstantPoolEntry::Long(_) | ConstantPoolEntry::Double(_) => true,
+                _ => false,
+            };
 
-            entries.push(constant_pool_entry);
+            entries.push(Some(constant_pool_entry));
             index += 1;
+
+            if long_entry {
+                index += 1;
+                entries.push(None);
+            }
         }
 
         Ok(ConstantPool {
@@ -54,7 +57,7 @@ impl ConstantPool {
 
     pub fn get(&self, index: usize) -> Option<&ConstantPoolEntry> {
         // Indexes starts at 1 in Java classfiles...
-        self.entries.get(index - 1)
+        self.entries.get(index - 1).and_then(|entry| entry.as_ref())
     }
 
     pub fn get_str(&self, index: usize) -> Option<&str> {
@@ -75,9 +78,11 @@ impl ConstantPool {
 impl_print! {
     ConstantPool(self, printer) {
         for entry in self.entries.iter() {
-            try!(printer.write_indent());
-            try!(entry.print(printer, self));
-            try!(writeln!(printer, ""));
+            if let &Some(ref entry) = entry {
+                try!(printer.write_indent());
+                try!(entry.print(printer, self));
+                try!(writeln!(printer, ""));
+            }
         }
     }
 }
