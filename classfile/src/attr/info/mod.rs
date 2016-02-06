@@ -19,6 +19,7 @@ pub enum AttrInfo {
     // Code
     StackMapTable(code::StackMapTableAttrInfo),
     LineNumberTable(code::LineNumberTableAttrInfo),
+    LocalVariableTable(code::LocalVariableTableAttrInfo),
 
     // Field
     ConstantValue(field::ConstantValueAttrInfo),
@@ -72,6 +73,7 @@ impl AttrInfo {
                 // Code
                 StackMapTable => code::StackMapTableAttrInfo::read,
                 LineNumberTable => code::LineNumberTableAttrInfo::read,
+                LocalVariableTable => code::LocalVariableTableAttrInfo::read,
 
                 // Field
                 ConstantValue => field::ConstantValueAttrInfo::read,
@@ -99,6 +101,7 @@ impl_print! {
             // Code
             AttrInfo::StackMapTable(ref info) => try!(info.print(printer, constant_pool)),
             AttrInfo::LineNumberTable(ref info) => try!(info.print(printer)),
+            AttrInfo::LocalVariableTable(ref info) => try!(info.print(printer, constant_pool)),
 
             // Field
             AttrInfo::ConstantValue(ref info) => try!(info.print(printer, constant_pool)),
