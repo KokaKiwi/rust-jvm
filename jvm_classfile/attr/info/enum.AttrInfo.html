@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `AttrInfo` enum in crate `jvm_classfile`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, AttrInfo">
+
+    <title>jvm_classfile::attr::info::AttrInfo - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../../../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../../../main.css">
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'><a href='../../index.html'>jvm_classfile</a>::<wbr><a href='../index.html'>attr</a>::<wbr><a href='index.html'>info</a></p><script>window.sidebarCurrent = {name: 'AttrInfo', ty: 'enum', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content enum">
+<h1 class='fqn'><span class='in-band'>Enum <a href='../../index.html'>jvm_classfile</a>::<wbr><a href='../index.html'>attr</a>::<wbr><a href='index.html'>info</a>::<wbr><a class='enum' href=''>AttrInfo</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a id='src-1474' class='srclink' href='../../../src/jvm_classfile/classfile/src/attr/info/mod.rs.html#12-38' title='goto source code'>[src]</a></span></h1>
+<pre class='rust enum'>pub enum AttrInfo {
+    InnerClasses(<a class='struct' href='../../../jvm_classfile/attr/info/classfile/inner_classes/struct.InnerClassesAttrInfo.html' title='jvm_classfile::attr::info::classfile::inner_classes::InnerClassesAttrInfo'>InnerClassesAttrInfo</a>),
+    SourceFile(<a class='struct' href='../../../jvm_classfile/attr/info/classfile/struct.SourceFileAttrInfo.html' title='jvm_classfile::attr::info::classfile::SourceFileAttrInfo'>SourceFileAttrInfo</a>),
+    EnclosingMethod(<a class='struct' href='../../../jvm_classfile/attr/info/classfile/struct.EnclosingMethodAttrInfo.html' title='jvm_classfile::attr::info::classfile::EnclosingMethodAttrInfo'>EnclosingMethodAttrInfo</a>),
+    StackMapTable(<a class='struct' href='../../../jvm_classfile/attr/info/code/stack_map/struct.StackMapTableAttrInfo.html' title='jvm_classfile::attr::info::code::stack_map::StackMapTableAttrInfo'>StackMapTableAttrInfo</a>),
+    LineNumberTable(<a class='struct' href='../../../jvm_classfile/attr/info/code/line_number/struct.LineNumberTableAttrInfo.html' title='jvm_classfile::attr::info::code::line_number::LineNumberTableAttrInfo'>LineNumberTableAttrInfo</a>),
+    LocalVariableTable(<a class='struct' href='../../../jvm_classfile/attr/info/code/local_variable/struct.LocalVariableTableAttrInfo.html' title='jvm_classfile::attr::info::code::local_variable::LocalVariableTableAttrInfo'>LocalVariableTableAttrInfo</a>),
+    ConstantValue(<a class='struct' href='../../../jvm_classfile/attr/info/field/struct.ConstantValueAttrInfo.html' title='jvm_classfile::attr::info::field::ConstantValueAttrInfo'>ConstantValueAttrInfo</a>),
+    Code(<a class='struct' href='../../../jvm_classfile/attr/info/method/code/struct.CodeAttrInfo.html' title='jvm_classfile::attr::info::method::code::CodeAttrInfo'>CodeAttrInfo</a>),
+    Exceptions(<a class='struct' href='../../../jvm_classfile/attr/info/method/exception/struct.ExceptionsAttrInfo.html' title='jvm_classfile::attr::info::method::exception::ExceptionsAttrInfo'>ExceptionsAttrInfo</a>),
+    Syncthetic(<a class='struct' href='../../../jvm_classfile/attr/info/misc/struct.SyntheticAttrInfo.html' title='jvm_classfile::attr::info::misc::SyntheticAttrInfo'>SyntheticAttrInfo</a>),
+    Deprecated(<a class='struct' href='../../../jvm_classfile/attr/info/misc/struct.DeprecatedAttrInfo.html' title='jvm_classfile::attr::info::misc::DeprecatedAttrInfo'>DeprecatedAttrInfo</a>),
+    RuntimeVisibleAnnotations(<a class='struct' href='../../../jvm_classfile/attr/info/misc/annotations/struct.RuntimeVisibleAnnotationsAttrInfo.html' title='jvm_classfile::attr::info::misc::annotations::RuntimeVisibleAnnotationsAttrInfo'>RuntimeVisibleAnnotationsAttrInfo</a>),
+    Signature(<a class='struct' href='../../../jvm_classfile/attr/info/misc/signature/struct.SignatureAttrInfo.html' title='jvm_classfile::attr::info::misc::signature::SignatureAttrInfo'>SignatureAttrInfo</a>),
+    Unknown(<a class='struct' href='https://doc.rust-lang.org/nightly/collections/vec/struct.Vec.html' title='collections::vec::Vec'>Vec</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.u8.html'>u8</a>&gt;),
+}</pre><h2 class='variants'>Variants</h2>
+<table class='variants_table'><tr><td id='variant.InnerClasses'><code>InnerClasses</code></td><td></td><td></td></tr><tr><td id='variant.SourceFile'><code>SourceFile</code></td><td></td><td></td></tr><tr><td id='variant.EnclosingMethod'><code>EnclosingMethod</code></td><td></td><td></td></tr><tr><td id='variant.StackMapTable'><code>StackMapTable</code></td><td></td><td></td></tr><tr><td id='variant.LineNumberTable'><code>LineNumberTable</code></td><td></td><td></td></tr><tr><td id='variant.LocalVariableTable'><code>LocalVariableTable</code></td><td></td><td></td></tr><tr><td id='variant.ConstantValue'><code>ConstantValue</code></td><td></td><td></td></tr><tr><td id='variant.Code'><code>Code</code></td><td></td><td></td></tr><tr><td id='variant.Exceptions'><code>Exceptions</code></td><td></td><td></td></tr><tr><td id='variant.Syncthetic'><code>Syncthetic</code></td><td></td><td></td></tr><tr><td id='variant.Deprecated'><code>Deprecated</code></td><td></td><td></td></tr><tr><td id='variant.RuntimeVisibleAnnotations'><code>RuntimeVisibleAnnotations</code></td><td></td><td></td></tr><tr><td id='variant.Signature'><code>Signature</code></td><td></td><td></td></tr><tr><td id='variant.Unknown'><code>Unknown</code></td><td></td><td></td></tr></table><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl <a class='enum' href='../../../jvm_classfile/attr/info/enum.AttrInfo.html' title='jvm_classfile::attr::info::AttrInfo'>AttrInfo</a></code></h3><div class='impl-items'><h4 id='method.read' class='method'><code>fn <a href='#method.read' class='fnname'>read</a>&lt;R: <a class='trait' href='https://doc.rust-lang.org/nightly/std/io/trait.Read.html' title='std::io::Read'>Read</a>&gt;(reader: &amp;mut R, name: &amp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>, pool: &amp;<a class='struct' href='../../../jvm_classfile/constant/struct.ConstantPool.html' title='jvm_classfile::constant::ConstantPool'>ConstantPool</a>) -&gt; <a class='type' href='../../../jvm_classfile/error/type.Result.html' title='jvm_classfile::error::Result'>Result</a>&lt;<a class='enum' href='../../../jvm_classfile/attr/info/enum.AttrInfo.html' title='jvm_classfile::attr::info::AttrInfo'>AttrInfo</a>&gt;</code></h4>
+</div><h3 class='impl'><code>impl <a class='enum' href='../../../jvm_classfile/attr/info/enum.AttrInfo.html' title='jvm_classfile::attr::info::AttrInfo'>AttrInfo</a></code></h3><div class='impl-items'><h4 id='method.print' class='method'><code>fn <a href='#method.print' class='fnname'>print</a>&lt;W: <a class='trait' href='https://doc.rust-lang.org/nightly/std/io/trait.Write.html' title='std::io::Write'>Write</a>&gt;(&amp;self, printer: &amp;mut Printer&lt;W&gt;, constant_pool: &amp;<a class='struct' href='../../../jvm_classfile/constant/struct.ConstantPool.html' title='jvm_classfile::constant::ConstantPool'>ConstantPool</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>Result</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt;</code></h4>
+</div><h2 id='implementations'>Trait Implementations</h2><h3 id='derived_implementations'>Derived Implementations </h3><h3 class='impl'><code>impl <a class='trait' href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html' title='core::fmt::Debug'>Debug</a> for <a class='enum' href='../../../jvm_classfile/attr/info/enum.AttrInfo.html' title='jvm_classfile::attr::info::AttrInfo'>AttrInfo</a></code></h3><div class='impl-items'><h4 id='method.fmt' class='method'><code>fn <a href='https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html#tymethod.fmt' class='fnname'>fmt</a>(&amp;self, __arg_0: &amp;mut <a class='struct' href='https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html' title='core::fmt::Formatter'>Formatter</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/core/fmt/type.Result.html' title='core::fmt::Result'>Result</a></code></h4>
+</div></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../../../";
+        window.currentCrate = "jvm_classfile";
+        window.playgroundUrl = "";
+    </script>
+    <script src="../../../jquery.js"></script>
+    <script src="../../../main.js"></script>
+    
+    <script defer src="../../../search-index.js"></script>
+</body>
+</html>

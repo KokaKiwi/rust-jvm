@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["annotations",""],["signature",""]],"struct":[["DeprecatedAttrInfo",""],["SyntheticAttrInfo",""]]});

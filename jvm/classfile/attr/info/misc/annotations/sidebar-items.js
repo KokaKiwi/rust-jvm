@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["ElementValue",""]],"struct":[["Annotation",""],["ClassInfo",""],["ConstValueInfo",""],["EnumConstValueInfo",""],["NamedElementValue",""],["RuntimeVisibleAnnotationsAttrInfo",""]]});
