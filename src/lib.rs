@@ -1,4 +1,4 @@
-extern crate jvm_classfile;
+pub extern crate jvm_classfile;
 #[macro_use] extern crate log;
 #[macro_use] extern crate quick_error;
 

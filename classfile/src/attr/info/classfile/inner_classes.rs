@@ -110,7 +110,7 @@ impl_print! {
 
 pub mod flags {
     bitflags! {
-        flags AccessFlags: u16 {
+        pub flags AccessFlags: u16 {
             #[doc = "Marked or implicitly public in source."]
             const ACC_PUBLIC = 0x0001,
             #[doc = "Marked private in source."]

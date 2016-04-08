@@ -75,7 +75,7 @@ impl_print! {
 
 pub mod flags {
     bitflags! {
-        flags AccessFlags: u16 {
+        pub flags AccessFlags: u16 {
             #[doc = "Declared public; may be accessed from outside its package."]
             const ACC_PUBLIC          = 0x0001,
             #[doc = "Declared private; accessible only within the defining class."]

@@ -1,4 +1,3 @@
-use byteorder;
 use std::convert::From;
 use std::io;
 use std::result;
@@ -23,12 +22,6 @@ quick_error! {
         BadTagValue(value: u8) {
             description("Bad tag value")
             display("Bad tag value: {:#x} `{}`", value, *value as char)
-        }
-        ByteOrderError(err: byteorder::Error) {
-            cause(err)
-            description(err.description())
-            display("Byteorder error: {}", err)
-            from()
         }
         ConstantPoolError(err: constant::Error) {
             cause(err)
