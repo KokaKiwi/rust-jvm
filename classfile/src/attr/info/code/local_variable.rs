@@ -1,4 +1,3 @@
-use byteorder::{ReadBytesExt, BigEndian};
 use constant::ConstantPool;
 use error::Result;
 use std::slice::Iter;
@@ -10,8 +9,13 @@ pub struct LocalVariableTableAttrInfo {
 }
 
 impl LocalVariableTableAttrInfo {
-    pub fn read<R: Read>(reader: &mut R, _constant_pool: &ConstantPool) -> Result<LocalVariableTableAttrInfo> {
-        // Read entries
+    pub fn entries<'a>(&'a self) -> Iter<'a, LocalVariable> {
+        self.entries.iter()
+    }
+}
+
+impl_read! {
+    LocalVariableTableAttrInfo(reader, _constant_pool: &ConstantPool) -> Result<Self> = {
         let entries_count = try!(reader.read_u16::<BigEndian>()) as usize;
         let mut entries = Vec::with_capacity(entries_count);
         for _ in 0..entries_count {
@@ -22,10 +26,6 @@ impl LocalVariableTableAttrInfo {
         Ok(LocalVariableTableAttrInfo {
             entries: entries,
         })
-    }
-
-    pub fn entries<'a>(&'a self) -> Iter<'a, LocalVariable> {
-        self.entries.iter()
     }
 }
 
@@ -47,7 +47,17 @@ pub struct LocalVariable {
 }
 
 impl LocalVariable {
-    pub fn read<R: Read>(reader: &mut R) -> Result<LocalVariable> {
+    pub fn name<'a>(&self, constant_pool: &'a ConstantPool) -> Option<&'a str> {
+        constant_pool.get_str(self.name_index)
+    }
+
+    pub fn desc<'a>(&self, constant_pool: &'a ConstantPool) -> Option<&'a str> {
+        constant_pool.get_str(self.desc_index)
+    }
+}
+
+impl_read! {
+    LocalVariable(reader) -> Result<Self> = {
         let start_pc = try!(reader.read_u16::<BigEndian>()) as usize;
         let length = try!(reader.read_u16::<BigEndian>()) as usize;
         let name_index = try!(reader.read_u16::<BigEndian>()) as usize;
@@ -61,14 +71,6 @@ impl LocalVariable {
             desc_index: desc_index,
             index: index,
         })
-    }
-
-    pub fn name<'a>(&self, constant_pool: &'a ConstantPool) -> Option<&'a str> {
-        constant_pool.get_str(self.name_index)
-    }
-
-    pub fn desc<'a>(&self, constant_pool: &'a ConstantPool) -> Option<&'a str> {
-        constant_pool.get_str(self.desc_index)
     }
 }
 

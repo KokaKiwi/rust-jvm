@@ -1,4 +1,3 @@
-use byteorder::{ReadBytesExt, BigEndian};
 use constant::ConstantPool;
 use error::Result;
 use std::slice::Iter;
@@ -10,7 +9,13 @@ pub struct LineNumberTableAttrInfo {
 }
 
 impl LineNumberTableAttrInfo {
-    pub fn read<R: Read>(reader: &mut R, _constant_pool: &ConstantPool) -> Result<LineNumberTableAttrInfo> {
+    pub fn entries<'a>(&'a self) -> Iter<'a, LineNumber> {
+        self.entries.iter()
+    }
+}
+
+impl_read! {
+    LineNumberTableAttrInfo(reader, _constant_pool: &ConstantPool) -> Result<Self> = {
         // Read entries
         let entries_count = try!(reader.read_u16::<BigEndian>()) as usize;
         let mut entries = Vec::with_capacity(entries_count);
@@ -22,10 +27,6 @@ impl LineNumberTableAttrInfo {
         Ok(LineNumberTableAttrInfo {
             entries: entries,
         })
-    }
-
-    pub fn entries<'a>(&'a self) -> Iter<'a, LineNumber> {
-        self.entries.iter()
     }
 }
 
@@ -45,8 +46,8 @@ pub struct LineNumber {
     pub line_number: usize,
 }
 
-impl LineNumber {
-    pub fn read<R: Read>(reader: &mut R) -> Result<LineNumber> {
+impl_read! {
+    LineNumber(reader) -> Result<Self> = {
         let start_pc = try!(reader.read_u16::<BigEndian>()) as usize;
         let line_number = try!(reader.read_u16::<BigEndian>()) as usize;
 

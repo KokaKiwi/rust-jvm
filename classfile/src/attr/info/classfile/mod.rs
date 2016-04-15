@@ -1,4 +1,3 @@
-use byteorder::{ReadBytesExt, BigEndian};
 use constant::{ConstantPool, ConstantPoolEntry, ConstantClassInfo, ConstantNameAndTypeInfo};
 use error::Result;
 use std::io::Read;
@@ -12,16 +11,18 @@ pub struct SourceFileAttrInfo {
 }
 
 impl SourceFileAttrInfo {
-    pub fn read<R: Read>(reader: &mut R, _constant_pool: &ConstantPool) -> Result<SourceFileAttrInfo> {
+    pub fn sourcefile<'a>(&self, constant_pool: &'a ConstantPool) -> Option<&'a str> {
+        constant_pool.get_str(self.sourcefile_index)
+    }
+}
+
+impl_read! {
+    SourceFileAttrInfo(reader, _constant_pool: &ConstantPool) -> Result<Self> = {
         let sourcefile_index = try!(reader.read_u16::<BigEndian>()) as usize;
 
         Ok(SourceFileAttrInfo {
             sourcefile_index: sourcefile_index,
         })
-    }
-
-    pub fn sourcefile<'a>(&self, constant_pool: &'a ConstantPool) -> Option<&'a str> {
-        constant_pool.get_str(self.sourcefile_index)
     }
 }
 
@@ -41,16 +42,6 @@ pub struct EnclosingMethodAttrInfo {
 }
 
 impl EnclosingMethodAttrInfo {
-    pub fn read<R: Read>(reader: &mut R, _constant_pool: &ConstantPool) -> Result<EnclosingMethodAttrInfo> {
-        let class_index = try!(reader.read_u16::<BigEndian>()) as usize;
-        let method_index = try!(reader.read_u16::<BigEndian>()) as usize;
-
-        Ok(EnclosingMethodAttrInfo {
-            class_index: class_index,
-            method_index: method_index,
-        })
-    }
-
     pub fn class<'a>(&self, constant_pool: &'a ConstantPool) -> Option<&'a ConstantClassInfo> {
         constant_pool.get_class_info(self.class_index)
     }
@@ -67,6 +58,18 @@ impl EnclosingMethodAttrInfo {
     }
 }
 
+impl_read! {
+    EnclosingMethodAttrInfo(reader, _constant_pool: &ConstantPool) -> Result<Self> = {
+        let class_index = try!(reader.read_u16::<BigEndian>()) as usize;
+        let method_index = try!(reader.read_u16::<BigEndian>()) as usize;
+
+        Ok(EnclosingMethodAttrInfo {
+            class_index: class_index,
+            method_index: method_index,
+        })
+    }
+}
+
 impl_print! {
     EnclosingMethodAttrInfo(self, printer, constant_pool: &ConstantPool) {
         let class = self.class(constant_pool).expect("Invalid class index");
@@ -80,5 +83,28 @@ impl_print! {
             try!(method.print(printer, constant_pool));
             try!(writeln!(printer, ""));
         }
+    }
+}
+
+#[derive(Debug)]
+pub struct SourceDebugExtensionAttrInfo {
+    pub data: String,
+}
+
+impl_read! {
+    SourceDebugExtensionAttrInfo(reader, _constant_pool: &ConstantPool) -> Result<Self> = {
+        let mut data = String::new();
+        try!(reader.read_to_string(&mut data));
+
+        Ok(SourceDebugExtensionAttrInfo {
+            data: data,
+        })
+    }
+}
+
+impl_print! {
+    SourceDebugExtensionAttrInfo(self, printer, _constant_pool: &ConstantPool) {
+        try!(printer.write_indent());
+        try!(writeln!(printer, "{}", self.data));
     }
 }

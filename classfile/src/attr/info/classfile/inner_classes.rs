@@ -1,4 +1,3 @@
-use byteorder::{ReadBytesExt, BigEndian};
 use constant::{ConstantPool, ConstantClassInfo};
 use error::{Error, Result};
 use std::io::Read;
@@ -8,8 +7,8 @@ pub struct InnerClassesAttrInfo {
     pub classes: Vec<Class>,
 }
 
-impl InnerClassesAttrInfo {
-    pub fn read<R: Read>(reader: &mut R, _pool: &ConstantPool) -> Result<Self> {
+impl_read! {
+    InnerClassesAttrInfo(reader, _constant_pool: &ConstantPool) -> Result<Self> = {
         let classes_count = try!(reader.read_u16::<BigEndian>()) as usize;
         let mut classes = Vec::with_capacity(classes_count);
         for _ in 0..classes_count {
@@ -43,24 +42,6 @@ pub struct Class {
 }
 
 impl Class {
-    pub fn read<R: Read>(reader: &mut R) -> Result<Class> {
-        let inner_class_info_index = try!(reader.read_u16::<BigEndian>()) as usize;
-        let outer_class_info_index = try!(reader.read_u16::<BigEndian>()) as usize;
-        let inner_name_index = try!(reader.read_u16::<BigEndian>()) as usize;
-        let inner_class_access_flags = try!(reader.read_u16::<BigEndian>());
-        let inner_class_access_flags = match flags::AccessFlags::from_bits(inner_class_access_flags) {
-            Some(flags) => flags,
-            None => return Err(Error::BadAccessFlags(inner_class_access_flags)),
-        };
-
-        Ok(Class {
-            inner_class_info_index: inner_class_info_index,
-            outer_class_info_index: outer_class_info_index,
-            inner_name_index: inner_name_index,
-            inner_class_access_flags: inner_class_access_flags,
-        })
-    }
-
     pub fn inner_class_info<'a>(&self, constant_pool: &'a ConstantPool) -> Option<&'a ConstantClassInfo> {
         constant_pool.get_class_info(self.inner_class_info_index)
     }
@@ -79,6 +60,26 @@ impl Class {
         } else {
             None
         }
+    }
+}
+
+impl_read! {
+    Class(reader) -> Result<Self> = {
+        let inner_class_info_index = try!(reader.read_u16::<BigEndian>()) as usize;
+        let outer_class_info_index = try!(reader.read_u16::<BigEndian>()) as usize;
+        let inner_name_index = try!(reader.read_u16::<BigEndian>()) as usize;
+        let inner_class_access_flags = try!(reader.read_u16::<BigEndian>());
+        let inner_class_access_flags = match flags::AccessFlags::from_bits(inner_class_access_flags) {
+            Some(flags) => flags,
+            None => return Err(Error::BadAccessFlags(inner_class_access_flags)),
+        };
+
+        Ok(Class {
+            inner_class_info_index: inner_class_info_index,
+            outer_class_info_index: outer_class_info_index,
+            inner_name_index: inner_name_index,
+            inner_class_access_flags: inner_class_access_flags,
+        })
     }
 }
 

@@ -14,7 +14,7 @@ impl RuntimeVisibleAnnotationsAttrInfo {
 }
 
 impl_read! {
-    RuntimeVisibleAnnotationsAttrInfo(reader, _constant_pool: &ConstantPool) -> Result<RuntimeVisibleAnnotationsAttrInfo> = {
+    RuntimeVisibleAnnotationsAttrInfo(reader, _constant_pool: &ConstantPool) -> Result<Self> = {
         let annotations_count = try!(reader.read_u16::<BigEndian>()) as usize;
         let mut annotations = Vec::with_capacity(annotations_count);
         for _ in 0..annotations_count {

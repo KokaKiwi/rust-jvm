@@ -1,7 +1,5 @@
-use byteorder::{ReadBytesExt, BigEndian};
 use constant::{ConstantPool, ConstantClassInfo};
 use error::Result;
-use std::io::Read;
 
 #[derive(Debug)]
 pub struct ExceptionsAttrInfo {
@@ -9,7 +7,13 @@ pub struct ExceptionsAttrInfo {
 }
 
 impl ExceptionsAttrInfo {
-    pub fn read<R: Read>(reader: &mut R, _pool: &ConstantPool) -> Result<ExceptionsAttrInfo> {
+    pub fn table<'a, 'b>(&'a self, pool: &'b ConstantPool) -> ExceptionsTable<'a, 'b> {
+        ExceptionsTable::new(self, pool)
+    }
+}
+
+impl_read! {
+    ExceptionsAttrInfo(reader, _constant_pool: &ConstantPool) -> Result<Self> = {
         let table_size = try!(reader.read_u16::<BigEndian>()) as usize;
         let mut table = Vec::with_capacity(table_size);
         for _ in 0..table_size {
@@ -20,10 +24,6 @@ impl ExceptionsAttrInfo {
         Ok(ExceptionsAttrInfo {
             table: table,
         })
-    }
-
-    pub fn table<'a, 'b>(&'a self, pool: &'b ConstantPool) -> ExceptionsTable<'a, 'b> {
-        ExceptionsTable::new(self, pool)
     }
 }
 

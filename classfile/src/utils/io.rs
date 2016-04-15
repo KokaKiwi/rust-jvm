@@ -5,7 +5,7 @@ use utils::vec;
 pub trait ReadExt: Read {
     fn read_vec(&mut self, size: usize) -> Result<Vec<u8>> {
         let mut data = unsafe { vec::uninitialized(size) };
-        try!(self.read(&mut data));
+        try!(self.read_exact(&mut data));
         Ok(data)
     }
 }

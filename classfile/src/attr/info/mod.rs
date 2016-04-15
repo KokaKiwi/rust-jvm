@@ -11,14 +11,11 @@ use constant::ConstantPool;
 #[derive(Debug)]
 pub enum AttrInfo {
     // Class file
-    InnerClasses(classfile::InnerClassesAttrInfo),
     SourceFile(classfile::SourceFileAttrInfo),
+    InnerClasses(classfile::InnerClassesAttrInfo),
     EnclosingMethod(classfile::EnclosingMethodAttrInfo),
-
-    // Code
-    StackMapTable(code::StackMapTableAttrInfo),
-    LineNumberTable(code::LineNumberTableAttrInfo),
-    LocalVariableTable(code::LocalVariableTableAttrInfo),
+    SourceDebugExtension(classfile::SourceDebugExtensionAttrInfo),
+    // BootstrapMethods
 
     // Field
     ConstantValue(field::ConstantValueAttrInfo),
@@ -26,12 +23,25 @@ pub enum AttrInfo {
     // Method
     Code(method::CodeAttrInfo),
     Exceptions(method::ExceptionsAttrInfo),
+    // RuntimeVisibleParameterAnnotations
+    // RuntimeInvisibleParameterAnnotations
+    // AnnotationDefault
+    // MethodParameters
+
+    // Code
+    LineNumberTable(code::LineNumberTableAttrInfo),
+    LocalVariableTable(code::LocalVariableTableAttrInfo),
+    // LocalVariableTypeTable
+    StackMapTable(code::StackMapTableAttrInfo),
 
     // Misc
     Syncthetic(misc::SyntheticAttrInfo),
     Deprecated(misc::DeprecatedAttrInfo),
-    RuntimeVisibleAnnotations(misc::RuntimeVisibleAnnotationsAttrInfo),
     Signature(misc::SignatureAttrInfo),
+    RuntimeVisibleAnnotations(misc::RuntimeVisibleAnnotationsAttrInfo),
+    // RuntimeInvisibleAnnotations
+    // RuntimeVisibleTypeAnnotations
+    // RuntimeInvisibleTypeAnnotations
 
     // Unknown
     Unknown(Vec<u8>),
@@ -72,11 +82,7 @@ impl_read! {
                 InnerClasses => classfile::InnerClassesAttrInfo::read,
                 SourceFile => classfile::SourceFileAttrInfo::read,
                 EnclosingMethod => classfile::EnclosingMethodAttrInfo::read,
-
-                // Code
-                StackMapTable => code::StackMapTableAttrInfo::read,
-                LineNumberTable => code::LineNumberTableAttrInfo::read,
-                LocalVariableTable => code::LocalVariableTableAttrInfo::read,
+                SourceDebugExtension => classfile::SourceDebugExtensionAttrInfo::read,
 
                 // Field
                 ConstantValue => field::ConstantValueAttrInfo::read,
@@ -84,6 +90,11 @@ impl_read! {
                 // Method
                 Code => method::CodeAttrInfo::read,
                 Exceptions => method::ExceptionsAttrInfo::read,
+
+                // Code
+                StackMapTable => code::StackMapTableAttrInfo::read,
+                LineNumberTable => code::LineNumberTableAttrInfo::read,
+                LocalVariableTable => code::LocalVariableTableAttrInfo::read,
 
                 // Misc
                 Syncthetic => misc::SyntheticAttrInfo::read,
@@ -104,11 +115,7 @@ impl_print! {
             AttrInfo::SourceFile(ref info) => try!(info.print(printer, constant_pool)),
             AttrInfo::InnerClasses(ref info) => try!(info.print(printer, constant_pool)),
             AttrInfo::EnclosingMethod(ref info) => try!(info.print(printer, constant_pool)),
-
-            // Code
-            AttrInfo::StackMapTable(ref info) => try!(info.print(printer, constant_pool)),
-            AttrInfo::LineNumberTable(ref info) => try!(info.print(printer)),
-            AttrInfo::LocalVariableTable(ref info) => try!(info.print(printer, constant_pool)),
+            AttrInfo::SourceDebugExtension(ref info) => try!(info.print(printer, constant_pool)),
 
             // Field
             AttrInfo::ConstantValue(ref info) => try!(info.print(printer, constant_pool)),
@@ -116,6 +123,11 @@ impl_print! {
             // Method
             AttrInfo::Code(ref info) => try!(info.print(printer, constant_pool)),
             AttrInfo::Exceptions(ref info) => try!(info.print(printer, constant_pool)),
+
+            // Code
+            AttrInfo::StackMapTable(ref info) => try!(info.print(printer, constant_pool)),
+            AttrInfo::LineNumberTable(ref info) => try!(info.print(printer)),
+            AttrInfo::LocalVariableTable(ref info) => try!(info.print(printer, constant_pool)),
 
             // Misc
             AttrInfo::Syncthetic(ref info) => try!(info.print(printer)),

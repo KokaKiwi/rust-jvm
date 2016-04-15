@@ -1,4 +1,3 @@
-use byteorder::{ReadBytesExt, BigEndian};
 use attr::Attr;
 use constant::{ConstantPool, ConstantClassInfo};
 use error::Result;
@@ -13,8 +12,8 @@ pub struct CodeAttrInfo {
     pub attrs: Vec<Attr>,
 }
 
-impl CodeAttrInfo {
-    pub fn read<R: Read>(reader: &mut R, pool: &ConstantPool) -> Result<CodeAttrInfo> {
+impl_read! {
+    CodeAttrInfo(reader, constant_pool: &ConstantPool) -> Result<Self> = {
         use utils::io::ReadExt;
 
         // Read indexes
@@ -37,7 +36,7 @@ impl CodeAttrInfo {
         let attrs_count = try!(reader.read_u16::<BigEndian>()) as usize;
         let mut attrs = Vec::with_capacity(attrs_count);
         for _ in 0..attrs_count {
-            let attr = try!(Attr::read(reader, pool));
+            let attr = try!(Attr::read(reader, constant_pool));
             attrs.push(attr);
         }
 
@@ -85,7 +84,17 @@ pub struct ExceptionHandler {
 }
 
 impl ExceptionHandler {
-    pub fn read<R: Read>(reader: &mut R) -> Result<ExceptionHandler> {
+    pub fn catch_type<'a>(&self, pool: &'a ConstantPool) -> Option<&'a ConstantClassInfo> {
+        if self.catch_type != 0 {
+            pool.get_class_info(self.catch_type)
+        } else {
+            None
+        }
+    }
+}
+
+impl_read! {
+    ExceptionHandler(reader) -> Result<Self> = {
         let start_pc = try!(reader.read_u16::<BigEndian>()) as usize;
         let end_pc = try!(reader.read_u16::<BigEndian>()) as usize;
         let handler_pc = try!(reader.read_u16::<BigEndian>()) as usize;
@@ -97,14 +106,6 @@ impl ExceptionHandler {
             handler_pc: handler_pc,
             catch_type: catch_type,
         })
-    }
-
-    pub fn catch_type<'a>(&self, pool: &'a ConstantPool) -> Option<&'a ConstantClassInfo> {
-        if self.catch_type != 0 {
-            pool.get_class_info(self.catch_type)
-        } else {
-            None
-        }
     }
 }
 
