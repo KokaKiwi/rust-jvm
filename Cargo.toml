@@ -4,12 +4,9 @@ version = "0.1.0"
 authors = ["KokaKiwi <kokakiwi@kokakiwi.net>"]
 
 [dependencies]
-clap = { git = "https://github.com/kbknapp/clap-rs", features = ["unstable"] }
+clap = { version = "*", features = ["unstable"] }
 env_logger = "*"
 jvm-classfile = { path = "classfile" }
 log = "*"
 quick-error = "*"
 
-[[bin]]
-name = "rjvm"
-doc = false

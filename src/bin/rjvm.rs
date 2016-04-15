@@ -11,7 +11,7 @@ fn main() {
 
     let matches = clap_app!(rjvm =>
         (author: "KokaKiwi <kokakiwi@kokakiwi.net>")
-        (version: env!("CARGO_PKG_VERSION"))
+        (version: crate_version!())
 
         (@arg CLASSPATH: -c --classpath +takes_value)
         (@arg CLASS: +required)
