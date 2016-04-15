@@ -8,6 +8,8 @@ Current status: `WIP`
 
 Documentation: http://kokakiwi.github.io/rust-jvm/jvm/index.html
 
+JVM specification documentation: https://docs.oracle.com/javase/specs/jvms/se8/html/
+
 Currently, the library can only parse almost all the Java .class file and print it.
 
 The `rjvm` executable only take a class name, parse it and print it.
