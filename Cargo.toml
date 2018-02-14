@@ -1,3 +1,6 @@
+[workspace]
+members = ["classfile"]
+
 [package]
 name = "jvm"
 version = "0.1.0"
@@ -6,7 +9,6 @@ authors = ["KokaKiwi <kokakiwi@kokakiwi.net>"]
 [dependencies]
 clap = { version = "*", features = ["unstable"] }
 env_logger = "*"
+error-chain = "*"
 jvm-classfile = { path = "classfile" }
 log = "*"
-quick-error = "*"
-

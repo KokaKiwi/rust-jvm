@@ -1,13 +1,16 @@
-use std::convert::From;
 use std::io;
-use std::result;
 use super::constant;
 
-pub type Result<T> = result::Result<T, Error>;
+error_chain! {
+    links {
+        ConstantPool(constant::error::Error, constant::error::ErrorKind);
+    }
 
-quick_error! {
-    #[derive(Debug)]
-    pub enum Error {
+    foreign_links {
+        Io(io::Error);
+    }
+
+    errors {
         BadAccessFlags(flags: u16) {
             description("Bad access flags")
             display("Bad access flags: {:#x}", flags)
@@ -22,18 +25,6 @@ quick_error! {
         BadTagValue(value: u8) {
             description("Bad tag value")
             display("Bad tag value: {:#x} `{}`", value, *value as char)
-        }
-        ConstantPoolError(err: constant::Error) {
-            cause(err)
-            description(err.description())
-            display("Constant error: {}", err)
-            from()
-        }
-        Io(err: io::Error) {
-            cause(err)
-            description(err.description())
-            display("I/O error: {}", err)
-            from()
         }
     }
 }

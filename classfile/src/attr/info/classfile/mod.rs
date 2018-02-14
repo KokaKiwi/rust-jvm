@@ -1,6 +1,5 @@
 use constant::{ConstantPool, ConstantPoolEntry, ConstantClassInfo, ConstantNameAndTypeInfo};
 use error::Result;
-use std::io::Read;
 pub use self::inner_classes::InnerClassesAttrInfo;
 
 pub mod inner_classes;

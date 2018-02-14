@@ -1,8 +1,8 @@
 pub mod info;
 
+use error::*;
 use self::info::AttrInfo;
 use super::constant::ConstantPool;
-use super::error::{Result, Error};
 
 #[derive(Debug)]
 pub struct Attr {
@@ -22,7 +22,7 @@ impl_read! {
         let name_index = try!(reader.read_u16::<BigEndian>()) as usize;
         let name = match pool.get_str(name_index) {
             Some(name) => name,
-            None => return Err(Error::BadAttrName(name_index)),
+            None => bail!(ErrorKind::BadAttrName(name_index)),
         };
 
         // Read attr info

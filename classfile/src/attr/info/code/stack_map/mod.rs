@@ -1,7 +1,6 @@
 use constant::ConstantPool;
 use error::Result;
 use self::frame::StackMapFrame;
-use std::io::Read;
 
 pub mod frame;
 

@@ -2,20 +2,22 @@
 extern crate env_logger;
 extern crate jvm;
 
-use jvm::classfile::ClassFile;
+use jvm::classfile::Classfile;
 use std::fs::File;
 use std::path::Path;
 
 fn main() {
-    env_logger::init().unwrap();
+    env_logger::init();
 
-    let matches = clap_app!(rjvm =>
-        (author: "KokaKiwi <kokakiwi@kokakiwi.net>")
-        (version: crate_version!())
-
-        (@arg CLASSPATH: -c --classpath +takes_value)
-        (@arg CLASS: +required)
-    ).get_matches();
+    let matches = clap::App::new("rjvm")
+        .author(crate_authors!())
+        .version(crate_version!())
+        .arg(clap::Arg::with_name("CLASSPATH")
+             .short("c").long("classpath")
+             .takes_value(true))
+        .arg(clap::Arg::with_name("CLASS")
+             .required(true))
+        .get_matches();
 
     let class = matches.value_of("CLASS").unwrap();
 
@@ -24,7 +26,7 @@ fn main() {
 
     let cf = {
         let mut file = File::open(path).unwrap();
-        ClassFile::read(&mut file).unwrap()
+        Classfile::read(&mut file).unwrap()
     };
 
     cf.dump();

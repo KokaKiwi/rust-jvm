@@ -1,7 +1,7 @@
-use byteorder::{ReadBytesExt, BigEndian};
 use attr::Attr;
+use byteorder::{ReadBytesExt, BigEndian};
 use constant::ConstantPool;
-use error::{Result, Error};
+use error::*;
 use std::io::Read;
 
 #[derive(Debug)]
@@ -18,7 +18,7 @@ impl FieldInfo {
         let access_flags = try!(reader.read_u16::<BigEndian>());
         let access_flags = match flags::AccessFlags::from_bits(access_flags) {
             Some(flags) => flags,
-            None => return Err(Error::BadAccessFlags(access_flags)),
+            None => bail!(ErrorKind::BadAccessFlags(access_flags)),
         };
 
         // Read indexes
@@ -75,25 +75,25 @@ impl_print! {
 
 pub mod flags {
     bitflags! {
-        pub flags AccessFlags: u16 {
+        pub struct AccessFlags: u16 {
             #[doc = "Declared public; may be accessed from outside its package."]
-            const ACC_PUBLIC      = 0x0001,
+            const ACC_PUBLIC      = 0x0001;
             #[doc = "Declared private; usable only within the defining class."]
-            const ACC_PRIVATE     = 0x0002,
+            const ACC_PRIVATE     = 0x0002;
             #[doc = "Declared protected; may be accessed within subclasses."]
-            const ACC_PROTECTED   = 0x0004,
+            const ACC_PROTECTED   = 0x0004;
             #[doc = "Declared static."]
-            const ACC_STATIC      = 0x0008,
+            const ACC_STATIC      = 0x0008;
             #[doc = "Declared final; never directly assigned to after object construction (JLS §17.5)."]
-            const ACC_FINAL       = 0x0010,
+            const ACC_FINAL       = 0x0010;
             #[doc = "Declared volatile; cannot be cached."]
-            const ACC_VOLATILE    = 0x0040,
+            const ACC_VOLATILE    = 0x0040;
             #[doc = "Declared transient; not written or read by a persistent object manager."]
-            const ACC_TRANSIENT   = 0x0080,
+            const ACC_TRANSIENT   = 0x0080;
             #[doc = "Declared synthetic; not present in the source code."]
-            const ACC_SYNTHETIC   = 0x1000,
+            const ACC_SYNTHETIC   = 0x1000;
             #[doc = "Declared as an element of an enum."]
-            const ACC_ENUM        = 0x4000,
+            const ACC_ENUM        = 0x4000;
         }
     }
 }

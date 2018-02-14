@@ -1,6 +1,5 @@
 use constant::{ConstantPool, ConstantClassInfo};
-use error::{Error, Result};
-use std::io::Read;
+use error::*;
 
 #[derive(Debug)]
 pub struct InnerClassesAttrInfo {
@@ -71,7 +70,7 @@ impl_read! {
         let inner_class_access_flags = try!(reader.read_u16::<BigEndian>());
         let inner_class_access_flags = match flags::AccessFlags::from_bits(inner_class_access_flags) {
             Some(flags) => flags,
-            None => return Err(Error::BadAccessFlags(inner_class_access_flags)),
+            None => bail!(ErrorKind::BadAccessFlags(inner_class_access_flags)),
         };
 
         Ok(Class {
@@ -111,27 +110,27 @@ impl_print! {
 
 pub mod flags {
     bitflags! {
-        pub flags AccessFlags: u16 {
+        pub struct AccessFlags: u16 {
             #[doc = "Marked or implicitly public in source."]
-            const ACC_PUBLIC = 0x0001,
+            const ACC_PUBLIC = 0x0001;
             #[doc = "Marked private in source."]
-            const ACC_PRIVATE = 0x0002,
+            const ACC_PRIVATE = 0x0002;
             #[doc = "Marked protected in source."]
-            const ACC_PROTECTED = 0x0004,
+            const ACC_PROTECTED = 0x0004;
             #[doc = "Marked or implicitly static in source."]
-            const ACC_STATIC = 0x0008,
+            const ACC_STATIC = 0x0008;
             #[doc = "Marked final in source."]
-            const ACC_FINAL = 0x0010,
+            const ACC_FINAL = 0x0010;
             #[doc = "Was an interface in source."]
-            const ACC_INTERFACE = 0x0200,
+            const ACC_INTERFACE = 0x0200;
             #[doc = "Marked or implicitly abstract in source."]
-            const ACC_ABSTRACT = 0x0400,
+            const ACC_ABSTRACT = 0x0400;
             #[doc = "Declared synthetic; not present in the source code."]
-            const ACC_SYNTHETIC = 0x1000,
+            const ACC_SYNTHETIC = 0x1000;
             #[doc = "Declared as an annotation type."]
-            const ACC_ANNOTATION = 0x2000,
+            const ACC_ANNOTATION = 0x2000;
             #[doc = "Declared as an enum type."]
-            const ACC_ENUM = 0x4000,
+            const ACC_ENUM = 0x4000;
         }
     }
 }

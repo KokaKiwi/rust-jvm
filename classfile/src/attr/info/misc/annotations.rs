@@ -1,5 +1,5 @@
 use constant::{ConstantPool, ConstantPoolEntry};
-use error::{Result, Error};
+use error::*;
 use std::slice::Iter;
 
 #[derive(Debug)]
@@ -151,7 +151,7 @@ impl_read! {
 
                     ElementValue::Array(values)
                 }
-            _ => return Err(Error::BadTagValue(tag)),
+            _ => bail!(ErrorKind::BadTagValue(tag)),
         };
 
         Ok(value)
@@ -168,6 +168,7 @@ impl_print! {
             ElementValue::Array(ref values) => {
                 try!(writeln!(printer, "Array:"));
 
+                let mut printer = printer.sub_indent(1);
                 for value in values.iter() {
                     try!(printer.write_indent());
                     try!(value.print(&mut printer.sub_indent(1).by_ref(), constant_pool));

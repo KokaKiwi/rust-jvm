@@ -1,7 +1,6 @@
 #[macro_use] extern crate bitflags;
 extern crate byteorder;
-#[macro_use] extern crate log;
-#[macro_use] extern crate quick_error;
+#[macro_use] extern crate error_chain;
 
 #[macro_use] mod utils;
 pub mod attr;
@@ -11,20 +10,20 @@ pub mod field;
 pub mod method;
 pub mod version;
 
+use attr::Attr;
 use byteorder::{ReadBytesExt, BigEndian};
-use self::attr::Attr;
-use self::constant::ConstantPool;
-pub use self::error::{Result, Error};
-use self::field::FieldInfo;
-use self::method::MethodInfo;
-use self::version::Version;
+use constant::ConstantPool;
+use error::*;
+use field::FieldInfo;
+use method::MethodInfo;
+use version::Version;
 use std::io;
 use utils::print::Printer;
 
 const MAGIC_VALUE: u32 = 0xCAFEBABE;
 
 #[derive(Debug)]
-pub struct ClassFile {
+pub struct Classfile {
     pub version: Version,
     pub constant_pool: ConstantPool,
     pub access_flags: flags::AccessFlags,
@@ -36,12 +35,12 @@ pub struct ClassFile {
     pub attrs: Vec<Attr>,
 }
 
-impl ClassFile {
-    pub fn read<R: io::Read>(reader: &mut R) -> Result<ClassFile> {
+impl Classfile {
+    pub fn read<R: io::Read>(reader: &mut R) -> Result<Classfile> {
         // Read magic value
         let magic = try!(reader.read_u32::<BigEndian>());
         if magic != MAGIC_VALUE {
-            return Err(Error::BadMagicValue(magic));
+            bail!(ErrorKind::BadMagicValue(magic));
         }
 
         // Read version
@@ -55,7 +54,7 @@ impl ClassFile {
         let access_flags = try!(reader.read_u16::<BigEndian>());
         let access_flags = match flags::AccessFlags::from_bits(access_flags) {
             Some(flags) => flags,
-            None => return Err(Error::BadAccessFlags(access_flags)),
+            None => bail!(ErrorKind::BadAccessFlags(access_flags)),
         };
 
         // Read indexes
@@ -94,7 +93,7 @@ impl ClassFile {
             attrs.push(attr);
         }
 
-        Ok(ClassFile {
+        Ok(Classfile {
             version: Version::new(major, minor),
             constant_pool: constant_pool,
             access_flags: access_flags,
@@ -126,7 +125,7 @@ impl ClassFile {
 }
 
 impl_print! {
-    ClassFile(self, printer) {
+    Classfile(self, printer) {
         try!(printer.write_indent());
         try!(writeln!(printer, "Version: {}", self.version));
 
@@ -183,7 +182,7 @@ pub struct Interfaces<'a> {
 }
 
 impl<'a> Interfaces<'a> {
-    fn new(cf: &'a ClassFile) -> Interfaces<'a> {
+    fn new(cf: &'a Classfile) -> Interfaces<'a> {
         Interfaces {
             iter: cf.interfaces.iter(),
             constant_pool: &cf.constant_pool,
@@ -201,23 +200,23 @@ impl<'a> Iterator for Interfaces<'a> {
 
 pub mod flags {
     bitflags! {
-        pub flags AccessFlags: u16 {
+        pub struct AccessFlags: u16 {
             #[doc = "Declared public; may be accessed from outside its package."]
-            const ACC_PUBLIC      = 0x0001,
+            const ACC_PUBLIC      = 0x0001;
             #[doc = "Declared final; no subclasses allowed."]
-            const ACC_FINAL       = 0x0010,
+            const ACC_FINAL       = 0x0010;
             #[doc = "Treat superclass methods specially when invoked by the invokespecial instruction."]
-            const ACC_SUPER       = 0x0020,
+            const ACC_SUPER       = 0x0020;
             #[doc = "Is an interface, not a class."]
-            const ACC_INTERFACE   = 0x0200,
+            const ACC_INTERFACE   = 0x0200;
             #[doc = "Declared abstract; must not be instantiated."]
-            const ACC_ABSTRACT    = 0x0400,
+            const ACC_ABSTRACT    = 0x0400;
             #[doc = "Declared synthetic; not present in the source code."]
-            const ACC_SYNTHETIC   = 0x1000,
+            const ACC_SYNTHETIC   = 0x1000;
             #[doc = "Declared as an annotation type."]
-            const ACC_ANNOTATION  = 0x2000,
+            const ACC_ANNOTATION  = 0x2000;
             #[doc = "Declared as an enum type."]
-            const ACC_ENUM        = 0x4000,
+            const ACC_ENUM        = 0x4000;
         }
     }
 }

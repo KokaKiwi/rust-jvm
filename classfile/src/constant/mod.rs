@@ -1,8 +1,8 @@
-mod error;
+pub mod error;
 
 use byteorder::{ReadBytesExt, BigEndian};
+use self::error::*;
 use std::io::Read;
-pub use self::error::{Result, Error};
 
 // #[allow(dead_code)]
 mod tag {
@@ -124,7 +124,7 @@ impl ConstantPoolEntry {
             tag::CONSTANT_METHODHANDLE => ConstantMethodHandleInfo::read(reader).map(ConstantPoolEntry::MethodHandle),
             tag::CONSTANT_METHODTYPE => ConstantMethodTypeInfo::read(reader).map(ConstantPoolEntry::MethodType),
             tag::CONSTANT_INVOKEDYNAMIC => ConstantInvokedDynamicInfo::read(reader).map(ConstantPoolEntry::InvokedDynamic),
-            _ => Err(From::from(Error::BadTagValue(tag))),
+            _ => Err(ErrorKind::BadTagValue(tag).into()),
         }
     }
 }
@@ -502,7 +502,7 @@ impl ConstantUtf8Info {
 
         let length = try!(reader.read_u16::<BigEndian>()) as usize;
         let data = try!(reader.read_vec(length));
-        let value = try!(String::from_utf8(data).map_err(Error::Utf8Error));
+        let value = String::from_utf8_lossy(&data).into_owned();
 
         Ok(ConstantUtf8Info {
             value: value,

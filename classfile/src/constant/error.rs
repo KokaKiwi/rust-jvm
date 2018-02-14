@@ -1,20 +1,16 @@
 use std::convert::From;
 use std::string::FromUtf8Error;
 
-pub use error::Result;
+error_chain! {
+    foreign_links {
+        Io(::std::io::Error);
+        Utf8(FromUtf8Error);
+    }
 
-quick_error! {
-    #[derive(Debug)]
-    pub enum Error {
+    errors {
         BadTagValue(value: u8) {
             description("Bad tag value")
             display("Bad tag value: {:x}", value)
-        }
-        Utf8Error(err: FromUtf8Error) {
-            cause(err)
-            description(err.description())
-            display("UTF-8 error: {}", err)
-            from()
         }
     }
 }

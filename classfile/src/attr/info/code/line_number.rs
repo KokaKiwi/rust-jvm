@@ -1,7 +1,6 @@
 use constant::ConstantPool;
 use error::Result;
 use std::slice::Iter;
-use std::io::Read;
 
 #[derive(Debug)]
 pub struct LineNumberTableAttrInfo {

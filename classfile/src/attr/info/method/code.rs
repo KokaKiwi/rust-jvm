@@ -1,7 +1,6 @@
 use attr::Attr;
 use constant::{ConstantPool, ConstantClassInfo};
 use error::Result;
-use std::io::Read;
 
 #[derive(Debug)]
 pub struct CodeAttrInfo {

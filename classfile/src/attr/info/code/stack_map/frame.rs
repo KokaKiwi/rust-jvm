@@ -92,7 +92,7 @@ impl_read! {
                 ),
             252...254   => StackMapFrameInfo::AppendFrame(try!(AppendFrameInfo::read(reader, tag))),
             255         => StackMapFrameInfo::FullFrame(try!(FullFrameInfo::read(reader, tag))),
-            _           => return Err(Error::BadTagValue(tag)),
+            _           => unreachable!(),
         };
 
         Ok(info)
