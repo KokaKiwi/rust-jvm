@@ -1,3 +1,5 @@
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FKokaKiwi%2Frust-jvm.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FKokaKiwi%2Frust-jvm?ref=badge_shield)
+
 rust-jvm
 ========
 
@@ -32,3 +34,7 @@ TO-DO List
       - [ ] Read `StackMapFrame` struct
       - [ ] Read `VerificationTypeInfo` struct
 - [ ] Implement classpath structs
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FKokaKiwi%2Frust-jvm.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2FKokaKiwi%2Frust-jvm?ref=badge_large)
